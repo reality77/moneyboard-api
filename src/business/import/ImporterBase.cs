@@ -24,7 +24,7 @@ namespace business.import
 		{
 			foreach(IImportProcessor processor in this.Processors)
 			{
-				if(!processor.ProcessFile(file))
+				if(!processor.ProcessImportedFile(file))
                     return true;
 			}
 
@@ -37,7 +37,7 @@ namespace business.import
 
 			foreach(IImportProcessor processor in this.Processors)
 			{
-				processor.ProcessTransaction(file, data, ref result);
+				processor.ProcessImportedTransaction(file, data, ref result);
 			}
 
 			return result;

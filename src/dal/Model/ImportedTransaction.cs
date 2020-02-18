@@ -4,22 +4,20 @@ using System.Text.Json.Serialization;
 
 namespace dal.Model
 {
-    public partial class ImportedTransaction
+    public partial class ImportedTransaction : Transaction
     {
         public ImportedTransaction()
+         : base()
         {
         }
 
-        public int Id { get; set; }
-        public int FileId { get; set; }
-        public decimal Amount { get; set; }
-        public string Number { get; set; }
-        public string Caption { get; set; }
-        public string Comment { get; set; }
-        public DateTime Date { get; set; }
-        public string Hash { get; set; }
+        public int ImportFileId { get; set; }
+        public string ImportNumber { get; set; }
+        public string ImportCaption { get; set; }
+        public string ImportComment { get; set; }
+        public string ImportHash { get; set; }
 
         [JsonIgnore]
-        public virtual ImportedFile File { get; set; }
+        public virtual ImportedFile ImportFile { get; set; }
     }
 }

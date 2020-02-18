@@ -8,6 +8,8 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using dal.Model;
 using business.import;
+using business;
+using business.transaction.processor;
 
 namespace api.Controllers
 {
@@ -30,8 +32,15 @@ namespace api.Controllers
         }
 
         [HttpPost("")]
-        public async Task<IActionResult> Import()
+        public async Task<IActionResult> Import(int accountId)
         {
+            var account = _db.Accounts.SingleOrDefault(a => a.Id == accountId);
+
+            if(account == null)
+                return NotFound();
+
+            var dicErrors = new Dictionary<string, List<ImportError>>();
+            
             foreach (var file in Request.Form.Files)
             {
                 ImportedFile ifile = new ImportedFile
@@ -59,16 +68,19 @@ namespace api.Controllers
                 }
 
                 // Ajout processeurs
-                importer.Processors.Add(new Utils.ImportProcessors.DuplicatesImportProcessor());
-                importer.Processors.Add(new Utils.ImportProcessors.DatabaseInsertionProcessor(_db));
+                var ceprocessor = new CaisseEpargneProcessor();
+                importer.Processors.Add(new business.import.processor.DatabaseInsertionProcessor(_db, account, new List<ITransactionProcessor>()
+                {
+                    ceprocessor
+                }));
 
                 try
                 {
                     var importedFile = importer.Import(file.FileName, stream, out var importErrors);
+                    dicErrors.Add(file.FileName, importErrors);
 
                     await _db.SaveChangesAsync();
 
-                    return Json(importedFile); // POUR DEBUG
                 }
                 catch (Exception ex)
                 {
@@ -76,7 +88,7 @@ namespace api.Controllers
                 }
             }
 
-            return Ok();
+            return Json(dicErrors); // POUR DEBUG
         }
     }
 }

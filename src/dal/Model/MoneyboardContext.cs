@@ -21,8 +21,12 @@ namespace dal.Model
             _config = config;
         }
 
+        public virtual DbSet<Account> Accounts { get; set; }
+        public virtual DbSet<Transaction> Transactions { get; set; }
         public virtual DbSet<ImportedFile> ImportedFiles { get; set; }
         public virtual DbSet<ImportedTransaction> ImportedTransactions { get; set; }
+        public virtual DbSet<TagType> TagTypes { get; set; }
+        public virtual DbSet<Tag> Tags { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -34,10 +38,70 @@ namespace dal.Model
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Account>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                
+                entity.Property(e => e.Id)
+                    .HasIdentityOptions(startValue: 1);
+            });
+
+            modelBuilder.Entity<TagType>(entity =>
+            {
+                entity.HasKey(e => e.Key);
+                entity.Property(e => e.Key).IsRequired();
+            });
+
+            modelBuilder.Entity<Tag>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Key).IsRequired();
+
+                entity.HasOne(d => d.Type)
+                    .WithMany(p => p.Tags)
+                    .HasForeignKey(d => d.TagTypeKey);
+
+                entity.HasIndex(e => new { e.TagTypeKey, e.Key } )
+                    .IsUnique();
+            });
+
+            modelBuilder.Entity<Transaction>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                
+                entity.Property(e => e.Id)
+                    .HasIdentityOptions(startValue: 1);
+
+                entity.HasDiscriminator<int>("transaction_type")
+                    .HasValue<Transaction>(0)
+                    .HasValue<ImportedTransaction>(1);
+
+                entity.HasOne(d => d.Account)
+                    .WithMany(p => p.Transactions)
+                    .HasForeignKey(d => d.AccountId);
+            });
+            
+            modelBuilder.Entity<TransactionTag>(entity =>
+            {
+                entity.HasKey(e => new { e.TransactionId, e.TagId } );
+
+                entity.Property(e => e.TransactionId).IsRequired();
+                entity.Property(e => e.TagId).IsRequired();
+
+                entity.HasOne(d => d.Tag)
+                    .WithMany(p => p.TransactionTags)
+                    .HasForeignKey(d => d.TagId);
+
+                entity.HasOne(d => d.Transaction)
+                    .WithMany(p => p.TransactionTags)
+                    .HasForeignKey(d => d.TransactionId);
+            });
+
             modelBuilder.Entity<ImportedFile>(entity =>
             {
+                entity.HasKey(e => e.Id);
+
                 entity.Property(e => e.Id)
-                    .HasColumnName("ID")
                     .HasIdentityOptions(startValue: 1);
 
                 entity.Property(e => e.FileName).IsRequired();
@@ -48,15 +112,15 @@ namespace dal.Model
 
             modelBuilder.Entity<ImportedTransaction>(entity =>
             {
-                entity.HasIndex(e => e.FileId);
+                entity.HasBaseType<Transaction>();
 
-                entity.HasIndex(e => e.Hash);
+                entity.HasIndex(e => e.ImportFileId);
 
-                entity.HasIndex(e => e.Date);
+                entity.HasIndex(e => e.ImportHash);
 
-                entity.HasOne(d => d.File)
+                entity.HasOne(d => d.ImportFile)
                     .WithMany(p => p.Transactions)
-                    .HasForeignKey(d => d.FileId);
+                    .HasForeignKey(d => d.ImportFileId);
             });
 
             OnModelCreatingPartial(modelBuilder);
@@ -67,6 +131,15 @@ namespace dal.Model
         public void SeedData()
         {
             //this.Database.Migrate();
+
+            // --- DEBUG
+            this.Accounts.Add(new Account
+            {
+                Id = 1,
+                Name = "Demo",
+            });
+
+            this.SaveChanges();
         }
     }
 }
