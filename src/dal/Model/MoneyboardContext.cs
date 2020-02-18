@@ -66,7 +66,7 @@ namespace dal.Model
     
         public void SeedData()
         {
-            this.Database.Migrate();
+            //this.Database.Migrate();
         }
     }
 }

@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using business.import.processor;
 
 namespace business.import
 {
@@ -103,7 +104,13 @@ namespace business.import
 						case '^':
 							{
 								SetTransactionHash(transaction, hashToTransactions);
-								file.Transactions.Add(transaction);
+								
+								var processorResult = RunProcessors(file, transaction);
+
+								errors.AddRange(processorResult.Errors);
+
+								if(!processorResult.SkipTransaction)
+									file.Transactions.Add(transaction);
 
 								// FIN DE TRANSACTION
 								transaction = null;
@@ -140,7 +147,13 @@ namespace business.import
 			if(transaction != null)
 			{
 				SetTransactionHash(transaction, hashToTransactions);
-				file.Transactions.Add(transaction);
+
+				var processorResult = RunProcessors(file, transaction);
+
+				errors.AddRange(processorResult.Errors);
+
+				if(!processorResult.SkipTransaction)
+					file.Transactions.Add(transaction);
 			}
 
 			return file;
@@ -173,5 +186,25 @@ namespace business.import
             var hash = _hash.ComputeHash(Encoding.UTF8.GetBytes(transactionString));
 			return Convert.ToBase64String(hash);
         }
+
+		public void RegisterProcessor(IImportProcessor processor)
+		{
+			this.Processors.Add(processor);
+		}
+
+		private TransactionProcessorResult RunProcessors(TransactionsFile file, TransactionData data)
+		{
+			var result = new TransactionProcessorResult();
+
+			foreach(IImportProcessor processor in this.Processors)
+			{
+				processor.Process(file, data, ref result);
+
+				if(result.StopOtherProcessors)
+					return result;
+			}
+
+			return result;
+		}
 	}
 }

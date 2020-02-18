@@ -6,7 +6,7 @@
 curl --insecure https://localhost:5001/account/debugadd?name=test
 
 ### Prepare import
-curl --insecure -X POST https://localhost:5001/import/prepare?accountId=4 -F file=@test.qif > liste_import.json
+curl --insecure -X POST https://localhost:5001/import -F file=@test.qif > liste_import.json
 
 ### Upload to account
 
