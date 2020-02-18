@@ -23,8 +23,14 @@ namespace api.Controllers
             _db = db;
         }
 
+        [HttpGet("")]
+        public IActionResult List()
+        {
+            return Json(_db.ImportedFiles.Include(f => f.Transactions));
+        }
+
         [HttpPost("")]
-        public IActionResult Import()
+        public async Task<IActionResult> Import()
         {
             foreach (var file in Request.Form.Files)
             {
@@ -52,9 +58,16 @@ namespace api.Controllers
                     return BadRequest("[IMPORT] File extension not supported");
                 }
 
+                // Ajout processeurs
+                importer.Processors.Add(new Utils.ImportProcessors.DuplicatesImportProcessor());
+                importer.Processors.Add(new Utils.ImportProcessors.DatabaseInsertionProcessor(_db));
+
                 try
                 {
-                    var importedFile = importer.Import(stream, out var importErrors);
+                    var importedFile = importer.Import(file.FileName, stream, out var importErrors);
+
+                    await _db.SaveChangesAsync();
+
                     return Json(importedFile); // POUR DEBUG
                 }
                 catch (Exception ex)

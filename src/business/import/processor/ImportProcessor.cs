@@ -10,6 +10,9 @@ namespace business.import.processor
 {
     public interface IImportProcessor
     {
-        void Process(TransactionsFile file, TransactionData data, ref TransactionProcessorResult result);
+        // Retourner true si le fichier doit être traité, false pour ne pas le traiter
+        bool ProcessFile(TransactionsFile file);
+
+        void ProcessTransaction(TransactionsFile file, TransactionData data, ref TransactionProcessorResult result);
     }
 }

@@ -18,11 +18,21 @@ namespace business.import
 			_hash = SHA1.Create();
 		}
 
-		public override TransactionsFile Import(Stream stream, out List<ImportError> errors)
+		public override TransactionsFile Import(string fileName, Stream stream, out List<ImportError> errors)
 		{
 			errors = new List<ImportError>();
 
-			var file = new TransactionsFile();
+			var file = new TransactionsFile()
+			{
+				FileName = fileName,
+			};
+
+			if(SkipFile(file))
+			{
+				errors.Add(new ImportError() { Error = "File skipped"});
+				return null;
+			}
+
             TransactionData transaction = null;
 			int lineId = 0;
 			Dictionary<string, List<TransactionData>> hashToTransactions = new Dictionary<string, List<TransactionData>>();
@@ -105,7 +115,7 @@ namespace business.import
 							{
 								SetTransactionHash(transaction, hashToTransactions);
 								
-								var processorResult = RunProcessors(file, transaction);
+								var processorResult = RunTransactionProcessors(file, transaction);
 
 								errors.AddRange(processorResult.Errors);
 
@@ -148,7 +158,7 @@ namespace business.import
 			{
 				SetTransactionHash(transaction, hashToTransactions);
 
-				var processorResult = RunProcessors(file, transaction);
+				var processorResult = RunTransactionProcessors(file, transaction);
 
 				errors.AddRange(processorResult.Errors);
 
@@ -186,25 +196,5 @@ namespace business.import
             var hash = _hash.ComputeHash(Encoding.UTF8.GetBytes(transactionString));
 			return Convert.ToBase64String(hash);
         }
-
-		public void RegisterProcessor(IImportProcessor processor)
-		{
-			this.Processors.Add(processor);
-		}
-
-		private TransactionProcessorResult RunProcessors(TransactionsFile file, TransactionData data)
-		{
-			var result = new TransactionProcessorResult();
-
-			foreach(IImportProcessor processor in this.Processors)
-			{
-				processor.Process(file, data, ref result);
-
-				if(result.StopOtherProcessors)
-					return result;
-			}
-
-			return result;
-		}
 	}
 }

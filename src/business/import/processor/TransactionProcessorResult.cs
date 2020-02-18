@@ -11,7 +11,6 @@ namespace business.import.processor
     public class TransactionProcessorResult
     {
         public bool SkipTransaction { get; set; }
-        public bool StopOtherProcessors { get; set; }
         public IList<ImportError> Errors {get;set;}
 
         public TransactionProcessorResult()

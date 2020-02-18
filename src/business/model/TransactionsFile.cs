@@ -6,6 +6,8 @@ namespace business
 {
     public class TransactionsFile
     {
+        public string FileName { get; set; }
+
         public List<TransactionData> Transactions { get; set; }
 
         public TransactionsFile()

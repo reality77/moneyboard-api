@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace dal.Model
 {
@@ -18,6 +19,7 @@ namespace dal.Model
         public DateTime Date { get; set; }
         public string Hash { get; set; }
 
+        [JsonIgnore]
         public virtual ImportedFile File { get; set; }
     }
 }

@@ -38,7 +38,7 @@ namespace business.import
 		{
 		}
 
-        public override TransactionsFile Import(Stream stream, out List<ImportError> errors)
+        public override TransactionsFile Import(string fileName, Stream stream, out List<ImportError> errors)
 		{
             errors = null;
             throw new NotImplementedException("OFX is not supported currently");

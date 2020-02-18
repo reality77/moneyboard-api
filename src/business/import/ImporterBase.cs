@@ -11,14 +11,37 @@ namespace business.import
 {
     public abstract class ImporterBase
     {
-        public IList<IImportProcessor> Processors;
+        public IList<IImportProcessor> Processors {get; private set; }
 
-        public abstract TransactionsFile Import(Stream stream, out List<ImportError> errors);
+        public abstract TransactionsFile Import(string fileName, Stream stream, out List<ImportError> errors);
 
         public ImporterBase()
         {
             Processors = new List<IImportProcessor>();            
         }
+
+		protected bool SkipFile(TransactionsFile file)
+		{
+			foreach(IImportProcessor processor in this.Processors)
+			{
+				if(!processor.ProcessFile(file))
+                    return true;
+			}
+
+			return false;
+		}
+
+		protected TransactionProcessorResult RunTransactionProcessors(TransactionsFile file, TransactionData data)
+		{
+			var result = new TransactionProcessorResult();
+
+			foreach(IImportProcessor processor in this.Processors)
+			{
+				processor.ProcessTransaction(file, data, ref result);
+			}
+
+			return result;
+		}
     }
 
     public enum ImportFileTypes
