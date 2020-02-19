@@ -13,7 +13,7 @@ namespace business.import
     {
         public IList<IImportProcessor> Processors {get; private set; }
 
-        public abstract TransactionsFile Import(string fileName, Stream stream, out List<ImportError> errors);
+        public abstract TransactionsFileImportResult Import(string fileName, Stream stream);
 
         public ImporterBase()
         {
@@ -31,13 +31,13 @@ namespace business.import
 			return false;
 		}
 
-		protected TransactionProcessorResult RunTransactionProcessors(TransactionsFile file, TransactionData data)
+		protected TransactionProcessorResult RunTransactionProcessors(int line, TransactionsFile file, TransactionData data)
 		{
 			var result = new TransactionProcessorResult();
 
 			foreach(IImportProcessor processor in this.Processors)
 			{
-				processor.ProcessImportedTransaction(file, data, ref result);
+				processor.ProcessImportedTransaction(line, file, data, ref result);
 			}
 
 			return result;

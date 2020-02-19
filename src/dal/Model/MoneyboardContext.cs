@@ -132,6 +132,10 @@ namespace dal.Model
         {
             //this.Database.Migrate();
 
+            this.TagTypes.Add(new TagType { Key = "payee", Caption = "Tiers" });
+            this.TagTypes.Add(new TagType { Key = "mode", Caption = "Mode" });
+            this.TagTypes.Add(new TagType { Key = "category", Caption = "Catégorie" });
+
             // --- DEBUG
             this.Accounts.Add(new Account
             {

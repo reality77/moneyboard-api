@@ -40,11 +40,11 @@ namespace business.import.processor
             return true;
         }
 
-        public void ProcessImportedTransaction(TransactionsFile file, TransactionData data, ref TransactionProcessorResult result)
+        public void ProcessImportedTransaction(int line, TransactionsFile file, TransactionData data, ref TransactionProcessorResult result)
         {
             if(_db.ImportedTransactions.Any(t => t.ImportHash == data.Hash))
             {
-                result.Errors.Add(new ImportError() { Error = "Hash already present in database" });
+                result.Errors.Add(new ImportError() { Line = line, Error = "Hash already present in database" });
                 result.SkipTransaction = true;
             }
 

@@ -18,20 +18,23 @@ namespace business.import
 			_hash = SHA1.Create();
 		}
 
-		public override TransactionsFile Import(string fileName, Stream stream, out List<ImportError> errors)
+		public override TransactionsFileImportResult Import(string fileName, Stream stream)
 		{
-			errors = new List<ImportError>();
-
+			TransactionsFileImportResult result = new TransactionsFileImportResult();
+			
 			var file = new TransactionsFile()
 			{
 				FileName = fileName,
 			};
 
+
 			if(SkipFile(file))
 			{
-				errors.Add(new ImportError() { Error = "File skipped"});
+				result.Errors.Add(new ImportError() { Error = "File skipped", IsSkipped = true });
 				return null;
 			}
+
+			result.File = file;
 
             TransactionData transaction = null;
 			int lineId = 0;
@@ -42,8 +45,8 @@ namespace business.import
 			{
 				while(!reader.EndOfStream)
 				{
-					lineId++;
 					string line = reader.ReadLine().TrimEnd(' ');
+					lineId++;
 
 					if(transaction == null)
 						transaction = new TransactionData();
@@ -52,7 +55,7 @@ namespace business.import
 					{
 						if (line != "!Type:Bank")
 						{
-							errors.Add(new ImportError{ Line = lineId, Error = "Type Bank expected"});
+							result.Errors.Add(new ImportError{ Line = lineId, Error = "Type Bank expected", IsSkipped = true, IsFatal = true });
 							return null;
 						}
 						else
@@ -107,20 +110,29 @@ namespace business.import
 								}
 								else
 									operationdetail.ImportCategory = data;*/
-								transaction.Error = "Splits not supported";
-								errors.Add(new ImportError{ Line = lineId, Error = "Splits not supported"});
+								transaction.Error = "Splits are not supported";
+								result.Errors.Add(new ImportError{ Line = lineId, Error = "Splits are not supported" });
 							}
 							break;
 						case '^':
 							{
 								SetTransactionHash(transaction, hashToTransactions);
+								result.TransactionsDetectedCount++;
 								
-								var processorResult = RunTransactionProcessors(file, transaction);
+								var processorResult = RunTransactionProcessors(lineId, file, transaction);
 
-								errors.AddRange(processorResult.Errors);
+								result.Errors.AddRange(processorResult.Errors);
 
 								if(!processorResult.SkipTransaction)
+								{
 									file.Transactions.Add(transaction);
+									result.TransactionsImportedCount++;
+								}
+								else
+									result.TransactionsSkippedCount++;
+								
+								if(!string.IsNullOrEmpty(transaction.Error))
+									result.TransactionsInErrorCount++;
 
 								// FIN DE TRANSACTION
 								transaction = null;
@@ -136,8 +148,8 @@ namespace business.import
 							{
 								//champ memo (mode split)
 								//operationdetail.ImportMemo = data;
-								transaction.Error = "Splits not supported";
-								errors.Add(new ImportError{ Line = lineId, Error = "Splits not supported"});
+								transaction.Error = "Splits are not supported";
+								result.Errors.Add(new ImportError{ Line = lineId, Error = "Splits are not supported" });
 							}
 							break;
 						case 'C':
@@ -148,6 +160,7 @@ namespace business.import
 						default:
 							{
 								Console.WriteLine("UNKNOWN TAG [" + tag + "] : " + line);
+								result.Errors.Add(new ImportError{ Line = lineId, Error = $"Uknown tag : {tag}" });
 							}
 							break;
 					}
@@ -157,16 +170,25 @@ namespace business.import
 			if(transaction != null)
 			{
 				SetTransactionHash(transaction, hashToTransactions);
+				result.TransactionsDetectedCount++;
+				
+				var processorResult = RunTransactionProcessors(lineId, file, transaction);
 
-				var processorResult = RunTransactionProcessors(file, transaction);
-
-				errors.AddRange(processorResult.Errors);
+				result.Errors.AddRange(processorResult.Errors);
 
 				if(!processorResult.SkipTransaction)
+				{
 					file.Transactions.Add(transaction);
+					result.TransactionsImportedCount++;
+				}
+				else
+					result.TransactionsSkippedCount++;
+				
+				if(!string.IsNullOrEmpty(transaction.Error))
+					result.TransactionsInErrorCount++;
 			}
 
-			return file;
+			return result;
 		}
 
 		private void SetTransactionHash(TransactionData transaction, Dictionary<string, List<TransactionData>> hashToTransactions)

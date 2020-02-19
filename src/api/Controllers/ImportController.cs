@@ -39,7 +39,7 @@ namespace api.Controllers
             if(account == null)
                 return NotFound();
 
-            var dicErrors = new Dictionary<string, List<ImportError>>();
+            var dicErrors = new Dictionary<string, TransactionsFileImportResult>();
             
             foreach (var file in Request.Form.Files)
             {
@@ -68,16 +68,15 @@ namespace api.Controllers
                 }
 
                 // Ajout processeurs
-                var ceprocessor = new CaisseEpargneProcessor();
                 importer.Processors.Add(new business.import.processor.DatabaseInsertionProcessor(_db, account, new List<ITransactionProcessor>()
                 {
-                    ceprocessor
+                    new CaisseEpargneProcessor()
                 }));
 
                 try
                 {
-                    var importedFile = importer.Import(file.FileName, stream, out var importErrors);
-                    dicErrors.Add(file.FileName, importErrors);
+                    var importResult = importer.Import(file.FileName, stream);
+                    dicErrors.Add(file.FileName, importResult);
 
                     await _db.SaveChangesAsync();
 

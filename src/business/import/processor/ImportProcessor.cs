@@ -13,6 +13,6 @@ namespace business.import.processor
         // Retourner true si le fichier doit être traité, false pour ne pas le traiter
         bool ProcessImportedFile(TransactionsFile file);
 
-        void ProcessImportedTransaction(TransactionsFile file, TransactionData data, ref TransactionProcessorResult result);
+        void ProcessImportedTransaction(int line, TransactionsFile file, TransactionData data, ref TransactionProcessorResult result);
     }
 }

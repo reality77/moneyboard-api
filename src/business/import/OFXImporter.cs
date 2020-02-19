@@ -38,9 +38,8 @@ namespace business.import
 		{
 		}
 
-        public override TransactionsFile Import(string fileName, Stream stream, out List<ImportError> errors)
+        public override TransactionsFileImportResult Import(string fileName, Stream stream)
 		{
-            errors = null;
             throw new NotImplementedException("OFX is not supported currently");
             /* 
             string[] contents = filecontent.Split('\n');
