@@ -27,6 +27,7 @@ namespace dal.Model
         public virtual DbSet<ImportedTransaction> ImportedTransactions { get; set; }
         public virtual DbSet<TagType> TagTypes { get; set; }
         public virtual DbSet<Tag> Tags { get; set; }
+        public virtual DbSet<TransactionRecognitionRule> TransactionRecognitionRules { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -123,6 +124,26 @@ namespace dal.Model
                     .HasForeignKey(d => d.ImportFileId);
             });
 
+            modelBuilder.Entity<TransactionRecognitionRule>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasIdentityOptions(startValue: 1);
+            });
+
+            modelBuilder.Entity<TransactionRecognitionRuleCondition>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasIdentityOptions(startValue: 1);
+
+                entity.HasOne(d => d.Rule)
+                    .WithMany(p => p.Conditions)
+                    .HasForeignKey(d => d.TransactionRecognitionRuleId);
+            });
+
             OnModelCreatingPartial(modelBuilder);
         }
 
@@ -136,12 +157,37 @@ namespace dal.Model
             this.TagTypes.Add(new TagType { Key = "mode", Caption = "Mode" });
             this.TagTypes.Add(new TagType { Key = "category", Caption = "Catégorie" });
 
+            this.Tags.Add(new Tag { TagTypeKey = "category", Key = "alimentation", Caption = "Alimentation" });
+
+
             // --- DEBUG
             this.Accounts.Add(new Account
             {
                 Id = 1,
                 Name = "Demo",
             });
+
+            var rule = new TransactionRecognitionRule { UseOrConditions = false };
+
+            rule.Conditions.Add(new TransactionRecognitionRuleCondition 
+            { 
+                FieldType = ERecognitionRuleConditionFieldType.Tag,
+                FieldName = "payee",
+                ValueType = ERecognitionRuleConditionValueType.String,
+                Value = "tirufle"
+            });
+
+            rule.Actions.Add(new TransactionRecognitionRuleAction
+            { 
+                Type = ERecognitionRuleActionType.AddTag,
+                Field = "category",
+                Value = "alimentation"
+            });
+
+            this.TransactionRecognitionRules.Add(rule);
+
+            // --- FIN DEBUG
+
 
             this.SaveChanges();
         }

@@ -27,4 +27,34 @@ namespace dal.Model
         Fees = 5
     }
 
+    public enum ERecognitionRuleConditionFieldType : int
+    {
+        DataField = 0,
+        Tag = 1
+    }
+
+    public enum ERecognitionRuleConditionValueType : int
+    {
+        String = 0,
+        Integer = 1,
+        Date = 2,
+        Amount = 3
+    }
+
+    public enum ERecognitionRuleConditionOperator : int
+    {
+        Equals = 0,
+        Contains = 1,
+        MatchRegex = 2,
+        Greater = 10,
+        GreaterThan = 11,
+        Lower = 12,
+        LowerThan = 13,
+    }
+
+    public enum ERecognitionRuleActionType : int
+    {
+        SetCaption = 0,
+        AddTag = 1,
+    }
 }
