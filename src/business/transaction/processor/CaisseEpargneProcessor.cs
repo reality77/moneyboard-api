@@ -55,8 +55,6 @@ namespace business.transaction.processor
                     break;
                 }    
             }
-
-            db.SaveChanges();
         }
 
         private IEnumerable<Tag> DetectTags(MoneyboardContext db, Match match)
@@ -80,7 +78,7 @@ namespace business.transaction.processor
                     });
                 }
 
-                Tag tag = db.Tags.SingleOrDefault(t => t.Key == tagKey);
+                Tag tag = db.Tags.SingleOrDefault(t => t.Key == FormatTagKey(tagKey));
                 if (tag == null)
                 {
                     tag = new Tag

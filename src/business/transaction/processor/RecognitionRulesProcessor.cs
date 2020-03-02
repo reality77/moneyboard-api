@@ -18,10 +18,6 @@ namespace business.transaction.processor
 
             foreach(var rule in rules)
                 ExecuteRule(transaction, rule);
-
-            {
-
-            }
         }
 
         private void ExecuteRule(ImportedTransaction transaction, TransactionRecognitionRule rule)
@@ -44,6 +40,7 @@ namespace business.transaction.processor
                 // TODO : Perform actions
             }
         }
+
         private bool IsConditionApplied(ImportedTransaction transaction, TransactionRecognitionRuleCondition condition)
         {
             object valueToTest = null;
@@ -58,8 +55,14 @@ namespace business.transaction.processor
                             case "caption":
                                 valueToTest = transaction.Caption;
                                 break;
+                            case "comment":
+                                valueToTest = transaction.Caption;
+                                break;
                             case "importcaption":
-                                valueToTest = transaction.ImportCaption;
+                                valueToTest = transaction.Comment;
+                                break;
+                            case "importcomment":
+                                valueToTest = transaction.ImportComment;
                                 break;
                             default:
                                 return false;
@@ -72,7 +75,8 @@ namespace business.transaction.processor
                             .Where(t => t.TagTypeKey.ToLower() == condition.FieldName.ToLower())
                             .Where(t => t.Key.ToLower() == "");
 
-                        if(tags.Contains(condition.Value))
+                        if(tags.Any(t => t.Key.ToLower() == condition.Value.ToLower()))
+                            return true;
                     }
                     break;
             }

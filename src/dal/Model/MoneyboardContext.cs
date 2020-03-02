@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -39,12 +40,31 @@ namespace dal.Model
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Utilisation de l'ancien fonctionnement UseSerialColumns plutôt que UseIdentityColumns car erreur de syntaxe à la création des tables
+            modelBuilder.UseSerialColumns();
+
             modelBuilder.Entity<Account>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 
-                entity.Property(e => e.Id)
-                    .HasIdentityOptions(startValue: 1);
+                entity.Property(e => e.Id).HasIdentityOptions();
+
+                entity.Property(e => e.Name)
+                    .IsRequired();
+
+                entity.Property(e => e.InitialBalance)
+                    .HasDefaultValue(0)
+                    .IsRequired();
+
+                entity.Property(e => e.Balance)
+                    .HasDefaultValue(0)
+                    .IsRequired();
+
+                entity.Property(e => e.Currency)
+                    .HasDefaultValue(ECurrency.EUR)
+                    .IsRequired();
+                
+                entity.HasIndex(e => e.Name).IsUnique();
             });
 
             modelBuilder.Entity<TagType>(entity =>
@@ -62,6 +82,11 @@ namespace dal.Model
                     .WithMany(p => p.Tags)
                     .HasForeignKey(d => d.TagTypeKey);
 
+                entity.HasOne(d => d.ParentTag)
+                    .WithMany(p => p.SubTags)
+                    .IsRequired(false)
+                    .HasForeignKey(d => d.ParentTagId);
+
                 entity.HasIndex(e => new { e.TagTypeKey, e.Key } )
                     .IsUnique();
             });
@@ -71,11 +96,19 @@ namespace dal.Model
                 entity.HasKey(e => e.Id);
                 
                 entity.Property(e => e.Id)
-                    .HasIdentityOptions(startValue: 1);
+                    .HasIdentityOptions();
 
                 entity.HasDiscriminator<int>("transaction_type")
                     .HasValue<Transaction>(0)
                     .HasValue<ImportedTransaction>(1);
+
+                entity.Property(e => e.Amount)
+                    .HasDefaultValue(0m)
+                    .IsRequired();
+
+                entity.Property(e => e.Type)
+                    .HasDefaultValue(ETransactionType.Unknown)
+                    .IsRequired();
 
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.Transactions)
@@ -129,7 +162,7 @@ namespace dal.Model
                 entity.HasKey(e => e.Id);
 
                 entity.Property(e => e.Id)
-                    .HasIdentityOptions(startValue: 1);
+                    .HasIdentityOptions();
             });
 
             modelBuilder.Entity<TransactionRecognitionRuleCondition>(entity =>
@@ -137,7 +170,7 @@ namespace dal.Model
                 entity.HasKey(e => e.Id);
 
                 entity.Property(e => e.Id)
-                    .HasIdentityOptions(startValue: 1);
+                    .HasIdentityOptions();
 
                 entity.HasOne(d => d.Rule)
                     .WithMany(p => p.Conditions)
@@ -151,41 +184,130 @@ namespace dal.Model
     
         public void SeedData()
         {
-            //this.Database.Migrate();
+            this.Database.Migrate();
 
-            this.TagTypes.Add(new TagType { Key = "payee", Caption = "Tiers" });
-            this.TagTypes.Add(new TagType { Key = "mode", Caption = "Mode" });
-            this.TagTypes.Add(new TagType { Key = "category", Caption = "Catégorie" });
+            if(!this.Tags.Any())
+            {
+                // Premiere initialisation
+                this.TagTypes.Add(new TagType { Key = "payee", Caption = "Tiers" });
+                this.TagTypes.Add(new TagType { Key = "mode", Caption = "Mode" });
+                this.TagTypes.Add(new TagType { Key = "category", Caption = "Catégorie" });
+                this.TagTypes.Add(new TagType { Key = "context", Caption = "Contexte" });
 
-            this.Tags.Add(new Tag { TagTypeKey = "category", Key = "alimentation", Caption = "Alimentation" });
+                this.SaveChanges();
 
+                this.Tags.AddRange(new List<Tag>
+                {
+                    new Tag { TagTypeKey = "category", Key = "alimentation", Caption = "Alimentation",  },
+                    new Tag { TagTypeKey = "category", Key = "factures", Caption = "Factures",  },
+
+                    new Tag { TagTypeKey = "context", Key = "personnel", Caption = "Personnel",  },
+                    new Tag { TagTypeKey = "context", Key = "famille", Caption = "Famille",  },
+                    new Tag { TagTypeKey = "context", Key = "travail", Caption = "Travail",  },
+                });
+
+                this.SaveChanges();
+
+                this.Tags.Add(new Tag { TagTypeKey = "category", Key = "restaurant", Caption = "Restaurant", ParentTag = this.Tags.SingleOrDefault(t => t.TagTypeKey == "category" && t.Key == "alimentation") });
+
+                this.Tags.Add(new Tag { TagTypeKey = "category", Key = "mobile", Caption = "Téléphone mobile", ParentTag = this.Tags.SingleOrDefault(t => t.TagTypeKey == "category" && t.Key == "factures") });
+                this.Tags.Add(new Tag { TagTypeKey = "category", Key = "mobile_perso", Caption = "Mobile personnel", ParentTag = this.Tags.SingleOrDefault(t => t.TagTypeKey == "category" && t.Key == "mobile") });
+
+                this.SaveChanges();
+            }
 
             // --- DEBUG
-            this.Accounts.Add(new Account
+            if(!this.Accounts.Any())
             {
-                Id = 1,
-                Name = "Demo",
-            });
+                this.Accounts.Add(new Account
+                {
+                    Id = 1,
+                    Name = "Demo",
+                });
 
-            var rule = new TransactionRecognitionRule { UseOrConditions = false };
+                // Rule 1 - tirufle
+                var rule = new TransactionRecognitionRule { UseOrConditions = false };
 
-            rule.Conditions.Add(new TransactionRecognitionRuleCondition 
-            { 
-                FieldType = ERecognitionRuleConditionFieldType.Tag,
-                FieldName = "payee",
-                ValueType = ERecognitionRuleConditionValueType.String,
-                Value = "tirufle"
-            });
+                rule.Conditions.Add(new TransactionRecognitionRuleCondition 
+                { 
+                    FieldType = ERecognitionRuleConditionFieldType.Tag,
+                    FieldName = "payee",
+                    ValueType = ERecognitionRuleConditionValueType.String,
+                    Value = "tirufle"
+                });
 
-            rule.Actions.Add(new TransactionRecognitionRuleAction
-            { 
-                Type = ERecognitionRuleActionType.AddTag,
-                Field = "category",
-                Value = "alimentation"
-            });
+                rule.Actions.Add(new TransactionRecognitionRuleAction
+                { 
+                    Type = ERecognitionRuleActionType.AddTag,
+                    Field = "category",
+                    Value = "restaurant"
+                });
 
-            this.TransactionRecognitionRules.Add(rule);
+                this.TransactionRecognitionRules.Add(rule);
 
+                // Rule 2 - abonnement mobile perso
+                rule = new TransactionRecognitionRule { UseOrConditions = false };
+
+                rule.Conditions.Add(new TransactionRecognitionRuleCondition 
+                { 
+                    FieldType = ERecognitionRuleConditionFieldType.Tag,
+                    FieldName = "payee",
+                    ValueType = ERecognitionRuleConditionValueType.String,
+                    Value = "TELE9"
+                });
+
+                rule.Conditions.Add(new TransactionRecognitionRuleCondition 
+                { 
+                    FieldType = ERecognitionRuleConditionFieldType.DataField,
+                    FieldName = "importcomment",
+                    ValueType = ERecognitionRuleConditionValueType.String,
+                    Value = "abonnement : 56504616"
+                });
+
+                rule.Actions.Add(new TransactionRecognitionRuleAction
+                { 
+                    Type = ERecognitionRuleActionType.AddTag,
+                    Field = "category",
+                    Value = "mobile_perso"
+                });
+
+                rule.Actions.Add(new TransactionRecognitionRuleAction
+                { 
+                    Type = ERecognitionRuleActionType.AddTag,
+                    Field = "context",
+                    Value = "personnel"
+                });
+
+                this.TransactionRecognitionRules.Add(rule);
+
+                // Rule 2 - abonnement mobile autre
+                rule = new TransactionRecognitionRule { UseOrConditions = false };
+
+                rule.Conditions.Add(new TransactionRecognitionRuleCondition 
+                { 
+                    FieldType = ERecognitionRuleConditionFieldType.Tag,
+                    FieldName = "payee",
+                    ValueType = ERecognitionRuleConditionValueType.String,
+                    Value = "TELE9"
+                });
+
+                rule.Conditions.Add(new TransactionRecognitionRuleCondition 
+                { 
+                    FieldType = ERecognitionRuleConditionFieldType.DataField,
+                    FieldName = "importcomment",
+                    ValueType = ERecognitionRuleConditionValueType.String,
+                    Value = "abonnement"
+                });
+
+                rule.Actions.Add(new TransactionRecognitionRuleAction
+                { 
+                    Type = ERecognitionRuleActionType.AddTag,
+                    Field = "category",
+                    Value = "mobile"
+                });
+
+                this.TransactionRecognitionRules.Add(rule);                
+            }
             // --- FIN DEBUG
 
 
