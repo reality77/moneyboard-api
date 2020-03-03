@@ -210,7 +210,12 @@ namespace dal.Model
 
                 this.Tags.Add(new Tag { TagTypeKey = "category", Key = "restaurant", Caption = "Restaurant", ParentTag = this.Tags.SingleOrDefault(t => t.TagTypeKey == "category" && t.Key == "alimentation") });
 
+                this.SaveChanges();
+
                 this.Tags.Add(new Tag { TagTypeKey = "category", Key = "mobile", Caption = "Téléphone mobile", ParentTag = this.Tags.SingleOrDefault(t => t.TagTypeKey == "category" && t.Key == "factures") });
+                
+                this.SaveChanges();
+                
                 this.Tags.Add(new Tag { TagTypeKey = "category", Key = "mobile_perso", Caption = "Mobile personnel", ParentTag = this.Tags.SingleOrDefault(t => t.TagTypeKey == "category" && t.Key == "mobile") });
 
                 this.SaveChanges();
