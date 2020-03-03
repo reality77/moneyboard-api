@@ -29,6 +29,7 @@ namespace dal.Model
         public virtual DbSet<TagType> TagTypes { get; set; }
         public virtual DbSet<Tag> Tags { get; set; }
         public virtual DbSet<TransactionRecognitionRule> TransactionRecognitionRules { get; set; }
+        public virtual DbSet<TagRecognition> TagRecognitions { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -80,14 +81,14 @@ namespace dal.Model
 
                 entity.HasOne(d => d.Type)
                     .WithMany(p => p.Tags)
-                    .HasForeignKey(d => d.TagTypeKey);
+                    .HasForeignKey(d => d.TypeKey);
 
                 entity.HasOne(d => d.ParentTag)
                     .WithMany(p => p.SubTags)
                     .IsRequired(false)
                     .HasForeignKey(d => d.ParentTagId);
 
-                entity.HasIndex(e => new { e.TagTypeKey, e.Key } )
+                entity.HasIndex(e => new { e.TypeKey, e.Key } )
                     .IsUnique();
             });
 
@@ -177,6 +178,20 @@ namespace dal.Model
                     .HasForeignKey(d => d.TransactionRecognitionRuleId);
             });
 
+            modelBuilder.Entity<TagRecognition>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.RecognizedTagTypeKey).IsRequired();
+                entity.Property(e => e.RecognizedTagKey).IsRequired();
+
+                entity.Property(e => e.TargetTagId).IsRequired();
+
+                entity.HasOne(d => d.TargetTag)
+                    .WithMany()
+                    .HasForeignKey(d => d.TargetTagId);
+            });            
+
             OnModelCreatingPartial(modelBuilder);
         }
 
@@ -198,25 +213,25 @@ namespace dal.Model
 
                 this.Tags.AddRange(new List<Tag>
                 {
-                    new Tag { TagTypeKey = "category", Key = "alimentation", Caption = "Alimentation",  },
-                    new Tag { TagTypeKey = "category", Key = "factures", Caption = "Factures",  },
+                    new Tag { TypeKey = "category", Key = "alimentation", Caption = "Alimentation",  },
+                    new Tag { TypeKey = "category", Key = "factures", Caption = "Factures",  },
 
-                    new Tag { TagTypeKey = "context", Key = "personnel", Caption = "Personnel",  },
-                    new Tag { TagTypeKey = "context", Key = "famille", Caption = "Famille",  },
-                    new Tag { TagTypeKey = "context", Key = "travail", Caption = "Travail",  },
+                    new Tag { TypeKey = "context", Key = "personnel", Caption = "Personnel",  },
+                    new Tag { TypeKey = "context", Key = "famille", Caption = "Famille",  },
+                    new Tag { TypeKey = "context", Key = "travail", Caption = "Travail",  },
                 });
 
                 this.SaveChanges();
 
-                this.Tags.Add(new Tag { TagTypeKey = "category", Key = "restaurant", Caption = "Restaurant", ParentTag = this.Tags.SingleOrDefault(t => t.TagTypeKey == "category" && t.Key == "alimentation") });
+                this.Tags.Add(new Tag { TypeKey = "category", Key = "restaurant", Caption = "Restaurant", ParentTag = this.Tags.SingleOrDefault(t => t.TypeKey == "category" && t.Key == "alimentation") });
 
                 this.SaveChanges();
 
-                this.Tags.Add(new Tag { TagTypeKey = "category", Key = "mobile", Caption = "Téléphone mobile", ParentTag = this.Tags.SingleOrDefault(t => t.TagTypeKey == "category" && t.Key == "factures") });
+                this.Tags.Add(new Tag { TypeKey = "category", Key = "mobile", Caption = "Téléphone mobile", ParentTag = this.Tags.SingleOrDefault(t => t.TypeKey == "category" && t.Key == "factures") });
                 
                 this.SaveChanges();
                 
-                this.Tags.Add(new Tag { TagTypeKey = "category", Key = "mobile_perso", Caption = "Mobile personnel", ParentTag = this.Tags.SingleOrDefault(t => t.TagTypeKey == "category" && t.Key == "mobile") });
+                this.Tags.Add(new Tag { TypeKey = "category", Key = "mobile_perso", Caption = "Mobile personnel", ParentTag = this.Tags.SingleOrDefault(t => t.TypeKey == "category" && t.Key == "mobile") });
 
                 this.SaveChanges();
             }

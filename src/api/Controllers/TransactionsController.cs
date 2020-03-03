@@ -24,7 +24,6 @@ namespace api.Controllers
 
         private readonly ILogger<TransactionsController> _logger;
 
-
         public TransactionsController(dal.Model.MoneyboardContext db, ILogger<TransactionsController> logger)
         {
             _db = db;
@@ -40,10 +39,10 @@ namespace api.Controllers
         [HttpGet("tag/{tagTypeKey}/{tagKey}")]
         public async Task<IActionResult> ByTag(string tagTypeKey, string tagKey, bool searchSubTags = false)
         {
-            var tag = await _db.Tags.SingleOrDefaultAsync(tg => tg.TagTypeKey == tagTypeKey && tg.Key == tagKey);
+            var tag = await _db.Tags.SingleOrDefaultAsync(tg => tg.TypeKey == tagTypeKey && tg.Key == tagKey);
 
             if(tag == null)
-                return NotFound("TODO MSG : TAG");
+                return NotFound($"Tag {tagTypeKey}.{tagKey} not found");
 
             var query = _db.Transactions
                 .Include(t => t.TransactionTags).ThenInclude(tt => tt.Tag).AsQueryable();
@@ -51,7 +50,6 @@ namespace api.Controllers
             if(searchSubTags) 
             {
                 var tagIds = (await tag.GetAllSubTagsAsync(_db)).Select(tg => tg.Id);
-
                 query = query.Where(t => t.TransactionTags.Any(tt => tagIds.Contains(tt.Tag.Id)));
             }
             else
@@ -69,7 +67,7 @@ namespace api.Controllers
                 Comment = t.Comment,
                 Tags = t.TransactionTags.Select(tt => new 
                 {
-                    TypeKey = tt.Tag.TagTypeKey,
+                    TypeKey = tt.Tag.TypeKey,
                     Key = tt.Tag.Key,
                 })
             }));

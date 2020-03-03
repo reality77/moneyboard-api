@@ -16,7 +16,7 @@ namespace dal.Model
         public string Key { get; set; }
         public string Caption { get; set; }
 
-        public string TagTypeKey { get; set; }
+        public string TypeKey { get; set; }
         
         public virtual TagType Type { get; set; }
         

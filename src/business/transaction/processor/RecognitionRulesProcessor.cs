@@ -114,7 +114,7 @@ namespace business.transaction.processor
                 case ERecognitionRuleConditionFieldType.Tag:
                     {
                         var tags = transaction.TransactionTags.Select(tt => tt.Tag)
-                            .Where(t => t.TagTypeKey.ToLower() == condition.FieldName.ToLower())
+                            .Where(t => t.TypeKey.ToLower() == condition.FieldName.ToLower())
                             .Where(t => t.Key.ToLower() == condition.Value.ToLower());
 
                         var result = tags.Any();
@@ -138,11 +138,11 @@ namespace business.transaction.processor
             {
                 case ERecognitionRuleActionType.AddTag:
                 {
-                    var tag = db.Tags.SingleOrDefault(t => t.TagTypeKey == action.Field && t.Key == action.Value);
+                    var tag = db.Tags.SingleOrDefault(t => t.TypeKey == action.Field && t.Key == action.Value);
 
                     if(tag == null)
                     {
-                        tag = new Tag { TagTypeKey = action.Field, Key = action.Value };
+                        tag = new Tag { TypeKey = action.Field, Key = action.Value };
                         db.Tags.Add(tag);
                     }
 

@@ -10,7 +10,7 @@ using dal.Model;
 namespace dal.Migrations
 {
     [DbContext(typeof(MoneyboardContext))]
-    [Migration("20200303104450_init")]
+    [Migration("20200303145208_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -95,17 +95,42 @@ namespace dal.Migrations
                     b.Property<int?>("ParentTagId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("TagTypeKey")
+                    b.Property<string>("TypeKey")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ParentTagId");
 
-                    b.HasIndex("TagTypeKey", "Key")
+                    b.HasIndex("TypeKey", "Key")
                         .IsUnique();
 
                     b.ToTable("Tags");
+                });
+
+            modelBuilder.Entity("dal.Model.TagRecognition", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn);
+
+                    b.Property<string>("RecognizedTagKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RecognizedTagTypeKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TargetTagId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TargetTagId");
+
+                    b.ToTable("TagRecognitions");
                 });
 
             modelBuilder.Entity("dal.Model.TagType", b =>
@@ -287,7 +312,16 @@ namespace dal.Migrations
 
                     b.HasOne("dal.Model.TagType", "Type")
                         .WithMany("Tags")
-                        .HasForeignKey("TagTypeKey");
+                        .HasForeignKey("TypeKey");
+                });
+
+            modelBuilder.Entity("dal.Model.TagRecognition", b =>
+                {
+                    b.HasOne("dal.Model.Tag", "TargetTag")
+                        .WithMany()
+                        .HasForeignKey("TargetTagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("dal.Model.Transaction", b =>

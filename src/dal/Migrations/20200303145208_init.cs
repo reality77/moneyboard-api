@@ -108,7 +108,7 @@ namespace dal.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
                     Key = table.Column<string>(nullable: false),
                     Caption = table.Column<string>(nullable: true),
-                    TagTypeKey = table.Column<string>(nullable: true),
+                    TypeKey = table.Column<string>(nullable: true),
                     ParentTagId = table.Column<int>(nullable: true)
                 },
                 constraints: table =>
@@ -121,8 +121,8 @@ namespace dal.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Tags_TagTypes_TagTypeKey",
-                        column: x => x.TagTypeKey,
+                        name: "FK_Tags_TagTypes_TypeKey",
+                        column: x => x.TypeKey,
                         principalTable: "TagTypes",
                         principalColumn: "Key",
                         onDelete: ReferentialAction.Restrict);
@@ -174,6 +174,27 @@ namespace dal.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TagRecognitions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn),
+                    RecognizedTagTypeKey = table.Column<string>(nullable: false),
+                    RecognizedTagKey = table.Column<string>(nullable: false),
+                    TargetTagId = table.Column<int>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TagRecognitions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TagRecognitions_Tags_TargetTagId",
+                        column: x => x.TargetTagId,
+                        principalTable: "Tags",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TransactionTag",
                 columns: table => new
                 {
@@ -209,14 +230,19 @@ namespace dal.Migrations
                 column: "FileName");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TagRecognitions_TargetTagId",
+                table: "TagRecognitions",
+                column: "TargetTagId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Tags_ParentTagId",
                 table: "Tags",
                 column: "ParentTagId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Tags_TagTypeKey_Key",
+                name: "IX_Tags_TypeKey_Key",
                 table: "Tags",
-                columns: new[] { "TagTypeKey", "Key" },
+                columns: new[] { "TypeKey", "Key" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -252,6 +278,9 @@ namespace dal.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "TagRecognitions");
+
             migrationBuilder.DropTable(
                 name: "TransactionRecognitionRuleAction");
 
