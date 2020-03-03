@@ -159,7 +159,6 @@ namespace dal.Migrations
                     TransactionRecognitionRuleId = table.Column<int>(nullable: false),
                     FieldType = table.Column<int>(nullable: false),
                     FieldName = table.Column<string>(nullable: true),
-                    ValueType = table.Column<int>(nullable: false),
                     ValueOperator = table.Column<int>(nullable: false),
                     Value = table.Column<string>(nullable: true)
                 },

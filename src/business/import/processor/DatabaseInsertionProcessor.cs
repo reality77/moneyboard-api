@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using business.transaction.processor;
 using dal.Model;
+using Microsoft.Extensions.Logging;
 
 namespace business.import.processor
 {
@@ -13,13 +14,16 @@ namespace business.import.processor
 
         private readonly IEnumerable<ITransactionProcessor> _transactionProcessors;
 
+        private readonly ILogger<DatabaseInsertionProcessor> _logger;
+
         private Dictionary<TransactionsFile, ImportedFile> _dicFiles = new Dictionary<TransactionsFile, ImportedFile>();
 
-        public DatabaseInsertionProcessor(MoneyboardContext db, Account account, IEnumerable<ITransactionProcessor> transactionProcessors)
+        public DatabaseInsertionProcessor(MoneyboardContext db, Account account, IEnumerable<ITransactionProcessor> transactionProcessors, ILogger<DatabaseInsertionProcessor> logger)
         {
             _db = db;
             _account = account;
             _transactionProcessors = transactionProcessors;
+            _logger = logger;
         }
 
         public bool ProcessImportedFile(TransactionsFile file)
@@ -44,8 +48,9 @@ namespace business.import.processor
         {
             if(_db.ImportedTransactions.Any(t => t.ImportHash == data.Hash))
             {
-                result.Errors.Add(new ImportError() { Line = line, Error = "Hash already present in database" });
+                result.Errors.Add(new ImportError() { Line = line, Error = "Hash already present in database", IsSkipped = true });
                 result.SkipTransaction = true;
+                return;
             }
 
             var ifile = _dicFiles[file];
@@ -62,10 +67,16 @@ namespace business.import.processor
                 ImportNumber = data.Number,
             };
 
-            foreach(var processor in _transactionProcessors)
-                processor.ProcessTransaction(_db, transaction);
-
             _db.Transactions.Add(transaction);
+
+            _db.SaveChanges();
+
+            foreach(var processor in _transactionProcessors)
+            {
+                _logger.LogDebug($"Processing {processor.GetType().Name} for transaction {data.Hash}");
+                processor.ProcessTransaction(_db, transaction);
+                _db.SaveChanges();
+            }
         }
     }
 }

@@ -33,14 +33,6 @@ namespace dal.Model
         Tag = 1
     }
 
-    public enum ERecognitionRuleConditionValueType : int
-    {
-        String = 0,
-        Integer = 1,
-        Date = 2,
-        Amount = 3
-    }
-
     public enum ERecognitionRuleConditionOperator : int
     {
         Equals = 0,
@@ -54,7 +46,7 @@ namespace dal.Model
 
     public enum ERecognitionRuleActionType : int
     {
-        SetCaption = 0,
+        SetData = 0,
         AddTag = 1,
     }
 }

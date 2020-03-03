@@ -10,6 +10,9 @@ using dal.Model;
 using business.import;
 using business;
 using business.transaction.processor;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using business.import.processor;
 
 namespace api.Controllers
 {
@@ -19,10 +22,14 @@ namespace api.Controllers
     public class ImportController : Controller
     {
         protected readonly dal.Model.MoneyboardContext _db;
+        private readonly ILogger<ImportController> _logger;
+        private readonly IServiceProvider _serviceProvider;
 
-        public ImportController(dal.Model.MoneyboardContext db)
+        public ImportController(dal.Model.MoneyboardContext db, ILogger<ImportController> logger, IServiceProvider serviceProvider)
         {
             _db = db;
+            _logger = logger;
+            _serviceProvider = serviceProvider;
         }
 
         [HttpGet("")]
@@ -68,10 +75,11 @@ namespace api.Controllers
                 }
 
                 // Ajout processeurs
-                importer.Processors.Add(new business.import.processor.DatabaseInsertionProcessor(_db, account, new List<ITransactionProcessor>()
+                importer.Processors.Add(new DatabaseInsertionProcessor(_db, account, new List<ITransactionProcessor>()
                 {
-                    new CaisseEpargneProcessor()
-                }));
+                    new CaisseEpargneProcessor(),
+                    new RecognitionRulesProcessor(_serviceProvider.GetService<ILogger<RecognitionRulesProcessor>>()),
+                }, _serviceProvider.GetService<ILogger<DatabaseInsertionProcessor>>()));
 
                 try
                 {

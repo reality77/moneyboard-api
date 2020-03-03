@@ -10,7 +10,7 @@ using dal.Model;
 namespace dal.Migrations
 {
     [DbContext(typeof(MoneyboardContext))]
-    [Migration("20200302154839_init")]
+    [Migration("20200303104450_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -229,9 +229,6 @@ namespace dal.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("ValueOperator")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ValueType")
                         .HasColumnType("integer");
 
                     b.HasKey("Id");

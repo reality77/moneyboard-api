@@ -232,7 +232,6 @@ namespace dal.Model
                 { 
                     FieldType = ERecognitionRuleConditionFieldType.Tag,
                     FieldName = "payee",
-                    ValueType = ERecognitionRuleConditionValueType.String,
                     Value = "tirufle"
                 });
 
@@ -252,15 +251,14 @@ namespace dal.Model
                 { 
                     FieldType = ERecognitionRuleConditionFieldType.Tag,
                     FieldName = "payee",
-                    ValueType = ERecognitionRuleConditionValueType.String,
                     Value = "TELE9"
                 });
 
                 rule.Conditions.Add(new TransactionRecognitionRuleCondition 
                 { 
                     FieldType = ERecognitionRuleConditionFieldType.DataField,
-                    FieldName = "importcomment",
-                    ValueType = ERecognitionRuleConditionValueType.String,
+                    FieldName = "ImportComment",
+                    ValueOperator = ERecognitionRuleConditionOperator.Contains,
                     Value = "abonnement : 56504616"
                 });
 
@@ -280,22 +278,21 @@ namespace dal.Model
 
                 this.TransactionRecognitionRules.Add(rule);
 
-                // Rule 2 - abonnement mobile autre
+                // Rule 3 - abonnement mobile autre
                 rule = new TransactionRecognitionRule { UseOrConditions = false };
 
                 rule.Conditions.Add(new TransactionRecognitionRuleCondition 
                 { 
                     FieldType = ERecognitionRuleConditionFieldType.Tag,
                     FieldName = "payee",
-                    ValueType = ERecognitionRuleConditionValueType.String,
                     Value = "TELE9"
                 });
 
                 rule.Conditions.Add(new TransactionRecognitionRuleCondition 
                 { 
                     FieldType = ERecognitionRuleConditionFieldType.DataField,
-                    FieldName = "importcomment",
-                    ValueType = ERecognitionRuleConditionValueType.String,
+                    FieldName = "ImportComment",
+                    ValueOperator = ERecognitionRuleConditionOperator.Contains,
                     Value = "abonnement"
                 });
 
@@ -306,7 +303,7 @@ namespace dal.Model
                     Value = "mobile"
                 });
 
-                this.TransactionRecognitionRules.Add(rule);                
+                this.TransactionRecognitionRules.Add(rule);
             }
             // --- FIN DEBUG
 

@@ -15,7 +15,6 @@ namespace dal.Model
         public ERecognitionRuleConditionFieldType FieldType { get; set; }
         public string FieldName { get; set; }
 
-        public ERecognitionRuleConditionValueType ValueType { get; set; }
         public ERecognitionRuleConditionOperator ValueOperator { get; set; }
         public string Value { get; set; }
 

@@ -229,9 +229,6 @@ namespace dal.Migrations
                     b.Property<int>("ValueOperator")
                         .HasColumnType("integer");
 
-                    b.Property<int>("ValueType")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.HasIndex("TransactionRecognitionRuleId");
