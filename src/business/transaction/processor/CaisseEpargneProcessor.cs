@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Text.RegularExpressions;
 using dal.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace business.transaction.processor
 {
@@ -55,8 +56,6 @@ namespace business.transaction.processor
                     break;
                 }    
             }
-
-            db.SaveChanges();
         }
 
         private IEnumerable<Tag> DetectTags(MoneyboardContext db, Match match)
@@ -69,28 +68,40 @@ namespace business.transaction.processor
             foreach (var group in groups)
             {
                 var tagTypeKey = group.Name.Remove(0, TAG_FORMAT.Length);
-                var tagKey = group.Value.Trim();
+                var tagKey = FormatTagKey(group.Value.Trim());
+                var tagKeyCaption = group.Value.Trim();
 
-                if (!db.TagTypes.Any(t => t.Key == tagTypeKey))
+                var recognizedTag = db.TagRecognitions
+                    .Include(tr => tr.TargetTag)
+                    .SingleOrDefault(tr => tr.RecognizedTagTypeKey == tagTypeKey && tr.RecognizedTagKey == tagKey);
+
+                Tag tag;
+
+                if(recognizedTag != null)
+                    tag = recognizedTag.TargetTag;
+                else
                 {
-                    db.TagTypes.Add(new TagType
+                    if (!db.TagTypes.Any(t => t.Key == tagTypeKey))
                     {
-                        Key = tagTypeKey,
-                        Caption = tagTypeKey,
-                    });
-                }
+                        db.TagTypes.Add(new TagType
+                        {
+                            Key = tagTypeKey,
+                            Caption = tagTypeKey,
+                        });
+                    }
 
-                Tag tag = db.Tags.SingleOrDefault(t => t.Key == tagKey);
-                if (tag == null)
-                {
-                    tag = new Tag
+                    tag = db.Tags.SingleOrDefault(t => t.Key == tagKey);
+                    if (tag == null)
                     {
-                        TagTypeKey = tagTypeKey,
-                        Key = FormatTagKey(tagKey),
-                        Caption = tagKey,
-                    };
+                        tag = new Tag
+                        {
+                            TypeKey = tagTypeKey,
+                            Key = tagKey,
+                            Caption = tagKeyCaption,
+                        };
 
-                    db.Tags.Add(tag);
+                        db.Tags.Add(tag);
+                    }
                 }
 
                 tags.Add(tag);

@@ -1,0 +1,17 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information",
+      "business.import.processor": "Warning",
+      "business.transaction.processor": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "UseDebugInMemoryDatabase": false,
+  "ConnectionStrings" : 
+  {
+    "Moneyboard": "Server=;Port=;Database=;User Id=;Password="
+  }
+}

@@ -29,8 +29,10 @@ namespace api
         {
             services.AddControllers();
 
-            //services.AddDbContext<MoneyboardContext>(options => options.UseNpgsql(this.Configuration.GetConnectionString("Moneyboard")));
-            services.AddDbContext<MoneyboardContext>(options => options.UseInMemoryDatabase(databaseName: "Moneyboard"));            
+            if(Configuration.GetValue<bool?>("UseDebugInMemoryDatabase") == true)
+                services.AddDbContext<MoneyboardContext>(options => options.UseInMemoryDatabase(databaseName: "Moneyboard"));
+            else
+                services.AddDbContext<MoneyboardContext>(options => options.UseNpgsql(this.Configuration.GetConnectionString("Moneyboard")));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
