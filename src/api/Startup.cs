@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using dal.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -27,12 +28,15 @@ namespace api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAutoMapper(typeof(dal.Model.Transaction));
+
             services.AddControllers();
 
             if(Configuration.GetValue<bool?>("UseDebugInMemoryDatabase") == true)
                 services.AddDbContext<MoneyboardContext>(options => options.UseInMemoryDatabase(databaseName: "Moneyboard"));
             else
                 services.AddDbContext<MoneyboardContext>(options => options.UseNpgsql(this.Configuration.GetConnectionString("Moneyboard")));
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Text.RegularExpressions;
 using dal.Model;
 using Microsoft.EntityFrameworkCore;
+using dto;
 
 namespace business.transaction.processor
 {

@@ -1,4 +1,4 @@
-namespace dal.Model
+namespace dto
 {
     public enum ECurrency
     {

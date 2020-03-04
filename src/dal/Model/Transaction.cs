@@ -1,6 +1,7 @@
 using System;
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
+using dto;
 
 namespace dal.Model
 {

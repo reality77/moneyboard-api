@@ -7,6 +7,7 @@ using dal.Model;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Microsoft.Extensions.Logging;
+using dto;
 
 namespace business.transaction.processor
 {
