@@ -22,9 +22,10 @@ namespace dal.Model
 
         public int AccountId { get; set; }
         
-        [JsonIgnore]
         public virtual Account Account { get; set; }
 
         public virtual ICollection<TransactionTag> TransactionTags { get; set; }
+
+        public virtual TransactionBalance BalanceData { get; set; }
     }
 }

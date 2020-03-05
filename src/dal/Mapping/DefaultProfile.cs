@@ -7,6 +7,10 @@ namespace dal.Mapping
     {
         public DefaultProfile()
         {
+            CreateMap<dal.Model.Account, dto.Model.AccountBase>();
+            
+            CreateMap<dal.Model.Account, dto.Model.AccountDetails>();
+
             CreateMap<dal.Model.Tag, dto.Model.Tag>();
 
             CreateMap<dal.Model.Transaction, dto.Model.Transaction>()
@@ -18,6 +22,17 @@ namespace dal.Mapping
                         Caption = tag.Tag.Caption,
                     }
                 )));
-        }        
+
+            CreateMap<dal.Model.Transaction, dto.Model.TransactionWithBalance>()
+                .ForMember(dest => dest.Balance, opt => opt.MapFrom(s => s.BalanceData.Balance))
+                .ForMember(dest => dest.Tags, 
+                    opt => opt.MapFrom(s => s.TransactionTags.AsQueryable().Select(tag => new dto.Model.Tag
+                    {
+                        TypeKey = tag.Tag.TypeKey,
+                        Key = tag.Tag.Key,
+                        Caption = tag.Tag.Caption,
+                    }
+                )));
+        }
     }
 }
