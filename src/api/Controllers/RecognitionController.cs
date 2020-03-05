@@ -94,7 +94,41 @@ namespace api.Controllers
                 .Include(t => t.TransactionTags)
                 .Where(t => t.ImportFileId == id);
 
+            try
+            {
+                var result = await RescanInternal(transactions);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"RESCAN FILE : {ex.ToString()}");
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+        }
+
+        [HttpPost("rescan/all")]
+        public async Task<IActionResult> RescanAll(int id)
+        {
+            var transactions = _db.ImportedTransactions
+                .Include(t => t.TransactionTags)
+                .AsQueryable();
+
+            try
+            {
+                var result = await RescanInternal(transactions);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"RESCAN ALL : {ex.ToString()}");
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+        }
+
+        public async Task<Dictionary<string, TransactionsFileImportResult>> RescanInternal(IQueryable<dal.Model.ImportedTransaction> transactions)
+        {
             var dicErrors = new Dictionary<string, TransactionsFileImportResult>();
+
             var transactionProcessors = new List<ITransactionProcessor>()
                 {
                     new CaisseEpargneProcessor(),
@@ -107,25 +141,17 @@ namespace api.Controllers
                 transaction.TransactionTags.Clear();
                 await _db.SaveChangesAsync();
 
-                try
+                foreach(var processor in transactionProcessors)
                 {
-                    foreach(var processor in transactionProcessors)
-                    {
-                        _logger.LogDebug($"Processing {processor.GetType().Name} for transaction {transaction.ImportHash}");
-                        processor.ProcessTransaction(_db, transaction);
-                        _db.SaveChanges();
-                    }
+                    _logger.LogDebug($"Processing {processor.GetType().Name} for transaction {transaction.ImportHash}");
+                    processor.ProcessTransaction(_db, transaction);
+                    _db.SaveChanges();
+                }
 
-                    await _db.SaveChangesAsync();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError($"RESCAN : {ex.ToString()}");
-                    return StatusCode((int)HttpStatusCode.InternalServerError);
-                }
+                await _db.SaveChangesAsync();
             }
 
-            return Json(dicErrors); // POUR DEBUG
+            return dicErrors; // POUR DEBUG
         }
     }
 }
