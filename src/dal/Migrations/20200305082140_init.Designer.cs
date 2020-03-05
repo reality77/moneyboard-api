@@ -10,7 +10,7 @@ using dal.Model;
 namespace dal.Migrations
 {
     [DbContext(typeof(MoneyboardContext))]
-    [Migration("20200303145208_init")]
+    [Migration("20200305082140_init")]
     partial class init
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
