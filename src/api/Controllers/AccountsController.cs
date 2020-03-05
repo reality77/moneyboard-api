@@ -66,5 +66,29 @@ namespace api.Controllers
 
             return Json(_mapper.Map<IEnumerable<TransactionWithBalance>>(transactions));
         }
+
+        [HttpGet("{id}/balance_history")]
+        public IActionResult BalanceHistory(int id, DateTime? from, DateTime? to)
+        {
+            var transactions = _db.Transactions
+                .Include(t => t.BalanceData)
+                .Include(t => t.TransactionTags).ThenInclude(tt => tt.Tag)
+                .Where(t => t.AccountId == id)
+                .OrderBy(t => t.Date).AsQueryable();
+
+            if(from != null)
+                transactions.Where(t => t.Date >= from);
+
+            if(to != null)
+                transactions.Where(t => t.Date < to);
+
+            var result = transactions.Select(t => new AccountBalance
+                { 
+                    Date = t.Date, 
+                    Balance = t.BalanceData.Balance 
+                });
+
+            return Json(result);
+        }
     }
 }
