@@ -12,6 +12,8 @@ using business;
 using business.transaction.processor;
 using business.extensions;
 using Microsoft.Extensions.Logging;
+using AutoMapper;
+using api.Models;
 
 namespace api.Controllers
 {
@@ -24,23 +26,86 @@ namespace api.Controllers
 
         private readonly ILogger<TagsController> _logger;
 
-        public TagsController(dal.Model.MoneyboardContext db, ILogger<TagsController> logger)
+        private readonly IMapper _mapper;
+
+        public TagsController(dal.Model.MoneyboardContext db, ILogger<TagsController> logger, IMapper mapper)
         {
             _db = db;
             _logger = logger;
+            _mapper = mapper;
         }
 
         [HttpGet("")]
-        public IActionResult List()
+        public async Task<IActionResult> List()
         {
-            //TODO : DTO
-            return Json(_db.Tags.Include(t => t.ParentTag).Select(t => new {
-                TypeKey = t.TypeKey,
-                Key = t.Key,
-                Caption = t.Caption,
-                ParentTypeKey = (t.ParentTag != null) ? t.ParentTag.TypeKey : null,
-                ParentKey = (t.ParentTag != null) ? t.ParentTag.Key : null,
-            }));
+            return Json(_mapper.Map<IEnumerable<dto.Model.Tag>>(await _db.Tags.ToListAsync()));
+        }
+
+        [HttpPost("{tagTypeKey}/{tagKeySource}/statistics")]
+        public async Task<IActionResult> Statistics(string tagTypeKey, string tagKeySource, [FromBody] TagStatisticsRequest request = null)
+        {
+            if(request == null)
+                request = new TagStatisticsRequest();
+
+            var tag = await _db.Tags.SingleOrDefaultAsync(t => t.TypeKey == tagTypeKey && t.Key == tagKeySource);
+
+            if(tag == null)
+                return NotFound("Tag not found");
+
+            var query = _db.Transactions
+                .Include(t => t.TransactionTags).ThenInclude(tt => tt.Tag)
+                .Where(t => t.TransactionTags.Any(tt => tt.Tag == tag))
+                .AsQueryable();
+
+            if(request.IncludeSubTags)
+                throw new NotImplementedException("TODO : request.IncludeSubTags");
+
+            if(request.DateStart != null)
+                query = query.Where(t => t.Date >= request.DateStart);
+
+            if(request.DateEnd != null)
+                query = query.Where(t => t.Date < request.DateEnd);
+
+            if(request.AccountIds != null && request.AccountIds.Any())
+                query = query.Where(t => request.AccountIds.Contains(t.AccountId));
+
+            switch(request.Range)
+            {
+                case EDateRange.Days:
+                {
+                    var result = query.GroupBy(t => new { Year = t.Date.Year, Month = t.Date.Month, Day = t.Date.Day }, (key, trx) => new 
+                    {
+                        Year = key.Year,
+                        Month = key.Month,
+                        Day = key.Day,
+                        Total = trx.Sum(tx => tx.Amount)
+                    });
+
+                    return Json(result);
+                }
+                case EDateRange.Years:
+                {
+                    var result = query.GroupBy(t => new { Year = t.Date.Year }, (key, trx) => new 
+                    {
+                        Year = key.Year,
+                        Total = trx.Sum(tx => tx.Amount)
+                    });
+
+                    return Json(result);
+                }
+                case EDateRange.Months:
+                default:
+                {
+                    var result = query.GroupBy(t => new { Year = t.Date.Year, Month = t.Date.Month }, (key, trx) => new 
+                    {
+                        Year = key.Year,
+                        Month = key.Month,
+                        Total = trx.Sum(tx => tx.Amount)
+                    });
+
+                    return Json(result);
+                }            
+            }
         }
 
         [HttpPost("{tagTypeKey}/{tagKeySource}/merge")]
