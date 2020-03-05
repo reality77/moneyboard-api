@@ -31,6 +31,7 @@ namespace dal.Model
         public virtual DbSet<Tag> Tags { get; set; }
         public virtual DbSet<TransactionRecognitionRule> TransactionRecognitionRules { get; set; }
         public virtual DbSet<TagRecognition> TagRecognitions { get; set; }
+        public virtual DbSet<TransactionBalance> TransactionBalances { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -192,6 +193,18 @@ namespace dal.Model
                     .WithMany()
                     .HasForeignKey(d => d.TargetTagId);
             });            
+
+            modelBuilder.Entity<TransactionBalance>(entity => {
+
+                entity.HasKey(e => e.Id);
+                
+                entity.ToView("TransactionBalances");
+
+                entity.HasOne<Transaction>()
+                    .WithOne(p => p.BalanceData)
+                    .HasForeignKey<TransactionBalance>(t => t.Id)
+                    .IsRequired(false);
+            });
 
             OnModelCreatingPartial(modelBuilder);
         }

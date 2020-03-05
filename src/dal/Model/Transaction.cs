@@ -25,5 +25,7 @@ namespace dal.Model
         public virtual Account Account { get; set; }
 
         public virtual ICollection<TransactionTag> TransactionTags { get; set; }
+
+        public virtual TransactionBalance BalanceData { get; set; }
     }
 }
