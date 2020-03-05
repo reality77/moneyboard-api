@@ -1,8 +1,6 @@
 
-using System.Text.Json.Serialization;
-using dto;
 
-namespace dal.Model
+namespace dto.Model
 {
     public partial class TransactionRecognitionRuleAction
     {
@@ -10,14 +8,8 @@ namespace dal.Model
         {
         }
 
-        public int Id { get; set; }
-        public int TransactionRecognitionRuleId { get; set; }
-
         public ERecognitionRuleActionType Type { get; set; }
         public string Field { get; set; }
         public string Value { get; set; }
-
-        public virtual TransactionRecognitionRule Rule { get; set; }
-
     }
 }

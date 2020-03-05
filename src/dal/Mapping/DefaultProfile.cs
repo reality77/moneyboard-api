@@ -7,6 +7,21 @@ namespace dal.Mapping
     {
         public DefaultProfile()
         {
+            CreateMap<dal.Model.TransactionRecognitionRule, dto.Model.TransactionRecognitionRuleEdit>()
+                .ReverseMap();
+
+            CreateMap<dal.Model.TransactionRecognitionRule, dto.Model.TransactionRecognitionRuleBase>();
+            
+            CreateMap<dal.Model.TransactionRecognitionRule, dto.Model.TransactionRecognitionRule>();
+            
+            CreateMap<dal.Model.TransactionRecognitionRuleAction, dto.Model.TransactionRecognitionRuleAction>()
+                .ReverseMap();
+            
+            CreateMap<dal.Model.TransactionRecognitionRuleCondition, dto.Model.TransactionRecognitionRuleCondition>()
+                .ReverseMap();
+
+            CreateMap<dal.Model.ImportedFile, dto.Model.ImportedFile>();
+
             CreateMap<dal.Model.Account, dto.Model.AccountBase>();
             
             CreateMap<dal.Model.Account, dto.Model.AccountDetails>();

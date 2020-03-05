@@ -13,6 +13,7 @@ using business.transaction.processor;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using business.import.processor;
+using AutoMapper;
 
 namespace api.Controllers
 {
@@ -24,18 +25,42 @@ namespace api.Controllers
         protected readonly dal.Model.MoneyboardContext _db;
         private readonly ILogger<ImportController> _logger;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IMapper _mapper;
 
-        public ImportController(dal.Model.MoneyboardContext db, ILogger<ImportController> logger, IServiceProvider serviceProvider)
+        public ImportController(dal.Model.MoneyboardContext db, ILogger<ImportController> logger, IServiceProvider serviceProvider, IMapper mapper)
         {
             _db = db;
             _logger = logger;
             _serviceProvider = serviceProvider;
+            _mapper = mapper;
         }
 
         [HttpGet("")]
         public IActionResult List()
         {
-            return Json(_db.ImportedFiles.Include(f => f.Transactions));
+            return Json(_mapper.Map<IEnumerable<dto.Model.ImportedFile>>(_db.ImportedFiles));
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Details(int id)
+        {
+            var file = await _db.ImportedFiles.SingleOrDefaultAsync(f => f.Id == id);
+
+            if(file == null)
+                return NotFound();
+            
+            return Json(_mapper.Map<dto.Model.ImportedFile>(file));
+        }
+        
+        [HttpGet("byfilename")]
+        public async Task<IActionResult> Details(string name)
+        {
+            var file = await _db.ImportedFiles.SingleOrDefaultAsync(f => f.FileName.ToLower() == name.ToLower());
+
+            if(file == null)
+                return NotFound();
+            
+            return Json(_mapper.Map<dto.Model.ImportedFile>(file));
         }
 
         [HttpPost("")]
@@ -97,5 +122,43 @@ namespace api.Controllers
 
             return Json(dicErrors); // POUR DEBUG
         }
+
+        [HttpPost("{id}/rescan")]
+        public async Task<IActionResult> RescanFile(int id)
+        {
+            var transactions = _db.ImportedTransactions.Where(t => t.ImportFileId == id);
+
+            var dicErrors = new Dictionary<string, TransactionsFileImportResult>();
+            var transactionProcessors = new List<ITransactionProcessor>()
+                {
+                    new CaisseEpargneProcessor(),
+                    new RecognitionRulesProcessor(_serviceProvider.GetService<ILogger<RecognitionRulesProcessor>>())
+                };
+
+            foreach (var transaction in transactions)
+            {
+                // Suppression tags
+                transaction.TransactionTags.Clear();
+                await _db.SaveChangesAsync();
+
+                try
+                {
+                    foreach(var processor in transactionProcessors)
+                    {
+                        _logger.LogDebug($"Processing {processor.GetType().Name} for transaction {transaction.ImportHash}");
+                        processor.ProcessTransaction(_db, transaction);
+                        _db.SaveChanges();
+                    }
+
+                    await _db.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest($"[IMPORT] {ex.ToString()}");
+                }
+            }
+
+            return Json(dicErrors); // POUR DEBUG
+        }        
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using AutoMapper;
 using dal.Model;
@@ -30,7 +31,11 @@ namespace api
         {
             services.AddAutoMapper(typeof(dal.Model.Transaction));
 
-            services.AddControllers();
+            services.AddControllers().AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                options.JsonSerializerOptions.IgnoreNullValues = true;
+            });
 
             if(Configuration.GetValue<bool?>("UseDebugInMemoryDatabase") == true)
                 services.AddDbContext<MoneyboardContext>(options => options.UseInMemoryDatabase(databaseName: "Moneyboard"));
