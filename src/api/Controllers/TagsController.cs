@@ -41,6 +41,33 @@ namespace api.Controllers
             return Json(_mapper.Map<IEnumerable<dto.Model.Tag>>(await _db.Tags.ToListAsync()));
         }
 
+        [HttpGet("{tagTypeKey}")]
+        public async Task<IActionResult> ListByTagType(string tagTypeKey)
+        {
+            return Json(_mapper.Map<IEnumerable<dto.Model.Tag>>(await _db.Tags.Where(t => t.TypeKey == tagTypeKey).ToListAsync()));
+        }
+
+        [HttpGet("{tagTypeKey}/{tagKeySource}")]
+        public async Task<IActionResult> Details(string tagTypeKey, string tagKeySource)
+        {
+            var tag = await _db.Tags.SingleOrDefaultAsync(t => t.TypeKey == tagTypeKey && t.Key == tagKeySource);
+
+            if(tag == null)
+                return NotFound();
+
+            return Json(_mapper.Map<dto.Model.Tag>(tag));
+        }
+
+        [HttpPost("")]
+        public async Task<IActionResult> Create(dto.Model.Tag tag)
+        {
+            _db.Tags.Add(_mapper.Map<dal.Model.Tag>(tag));
+            
+            await _db.SaveChangesAsync();
+
+            return Json(tag);
+        }
+
         [HttpPost("{tagTypeKey}/{tagKeySource}/statistics")]
         public async Task<IActionResult> Statistics(string tagTypeKey, string tagKeySource, [FromBody] TagStatisticsRequest request = null)
         {

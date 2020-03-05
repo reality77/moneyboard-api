@@ -42,6 +42,20 @@ namespace api.Controllers
             return Json(_mapper.Map<IEnumerable<dto.Model.Transaction>>(trx));
         }
 
+        [HttpGet("{id}")]
+        public IActionResult Details(int id)
+        {
+            var trx = _db.ImportedTransactions
+                .Include(t => t.TransactionTags)
+                .ThenInclude(tt => tt.Tag)
+                .SingleOrDefault(t => t.Id == id);
+
+            if(trx == null)
+                return NotFound();
+
+            return Json(_mapper.Map<dto.Model.ImportedTransaction>(trx));
+        }
+
         [HttpGet("tag/{tagTypeKey}/{tagKey}")]
         public async Task<IActionResult> ByTag(string tagTypeKey, string tagKey, bool searchSubTags = false)
         {
