@@ -39,9 +39,9 @@ namespace dto
         Contains = 1,
         MatchRegex = 2,
         Greater = 10,
-        GreaterThan = 11,
+        GreaterOrEquals = 11,
         Lower = 12,
-        LowerThan = 13,
+        LowerOrEquals = 13,
     }
 
     public enum ERecognitionRuleActionType : int

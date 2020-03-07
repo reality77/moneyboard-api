@@ -109,6 +109,45 @@ namespace business.transaction.processor
                                     return false;
                                 }
                             }
+                            case ERecognitionRuleConditionOperator.Greater:
+                            case ERecognitionRuleConditionOperator.GreaterOrEquals:
+                            case ERecognitionRuleConditionOperator.Lower:
+                            case ERecognitionRuleConditionOperator.LowerOrEquals:
+                            {
+                                if(!property.PropertyType.IsNumericType())
+                                {
+                                    _logger.LogWarning($"Condition #{condition.Rule.Id}.{condition.Id} : BAD_TYPE : Property {condition.FieldName} is not numeric");
+                                    return false;
+                                }
+                                else
+                                {
+                                    var comparison = ((IComparable)valueToTest).CompareTo(convertedValue);
+                                    bool result = false;
+                                    _logger.LogDebug($"Testing #{condition.Rule.Id}.{condition.Id} : Comparing '{(string)valueToTest}' and '{(string)convertedValue}' : Value : {comparison}");
+
+                                    switch(condition.ValueOperator)
+                                    {
+                                        case ERecognitionRuleConditionOperator.Greater:
+                                            result = (comparison > 0);
+                                            break;
+                                        case ERecognitionRuleConditionOperator.GreaterOrEquals:
+                                            result = (comparison >= 0);
+                                            break;
+                                        case ERecognitionRuleConditionOperator.Lower:
+                                            result = (comparison < 0);
+                                            break;
+                                        case ERecognitionRuleConditionOperator.LowerOrEquals:
+                                            result = (comparison <= 0);
+                                            break;
+                                    }
+
+                                    if(result)
+                                        _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : MATCH : Equals matched with transaction {transaction.ImportHash}");
+                                    else
+                                        _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : Equals matched with transaction {transaction.ImportHash}");
+                                    return result;
+                                }
+                            }
                         }
                     }
                     break;
