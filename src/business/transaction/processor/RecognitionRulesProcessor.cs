@@ -75,7 +75,7 @@ namespace business.transaction.processor
 
                         valueToTest = property.GetValue(transaction);
 
-                        object convertedValue = Convert.ChangeType(condition.Value, property.PropertyType);
+                        object convertedValue = Convert.ChangeType(condition.Value, property.PropertyType, CultureInfo.InvariantCulture);
 
                         // TODO : Autres cas et conversion type
                         switch(condition.ValueOperator)
@@ -83,7 +83,7 @@ namespace business.transaction.processor
                             case ERecognitionRuleConditionOperator.Equals:
                             {
                                 var result = valueToTest.Equals(convertedValue);
-                                _logger.LogDebug($"Testing #{condition.Rule.Id}.{condition.Id} : '{(string)valueToTest}' = '{(string)convertedValue}' ?");
+                                _logger.LogDebug($"Testing #{condition.Rule.Id}.{condition.Id} : '{Convert.ToString(valueToTest)}' = '{Convert.ToString(convertedValue)}' ?");
                                 if(result)
                                     _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : MATCH : Equals matched with transaction {transaction.ImportHash}");
                                 else
@@ -114,7 +114,7 @@ namespace business.transaction.processor
                             case ERecognitionRuleConditionOperator.Lower:
                             case ERecognitionRuleConditionOperator.LowerOrEquals:
                             {
-                                if(!property.PropertyType.IsNumericType())
+                                if(!property.PropertyType.IsNumeric())
                                 {
                                     _logger.LogWarning($"Condition #{condition.Rule.Id}.{condition.Id} : BAD_TYPE : Property {condition.FieldName} is not numeric");
                                     return false;
@@ -123,7 +123,7 @@ namespace business.transaction.processor
                                 {
                                     var comparison = ((IComparable)valueToTest).CompareTo(convertedValue);
                                     bool result = false;
-                                    _logger.LogDebug($"Testing #{condition.Rule.Id}.{condition.Id} : Comparing '{(string)valueToTest}' and '{(string)convertedValue}' : Value : {comparison}");
+                                    _logger.LogDebug($"Testing #{condition.Rule.Id}.{condition.Id} : Comparing '{Convert.ToString(valueToTest)}' and '{Convert.ToString(convertedValue)}' : Value : {comparison}");
 
                                     switch(condition.ValueOperator)
                                     {

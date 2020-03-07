@@ -6,7 +6,12 @@ namespace business
     {
         public static bool IsNumericType(this object o)
         {   
-            switch (Type.GetTypeCode(o.GetType()))
+            return IsNumeric(o.GetType());
+        }
+
+        public static bool IsNumeric(this Type t)
+        {   
+            switch (Type.GetTypeCode(t))
             {
                 case TypeCode.Byte:
                 case TypeCode.SByte:
@@ -24,5 +29,6 @@ namespace business
                 return false;
             }
         }
+
     }
 }
