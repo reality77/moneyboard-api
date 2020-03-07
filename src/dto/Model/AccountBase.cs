@@ -13,5 +13,7 @@ namespace dto.Model
         public decimal Balance { get; set; }
         public ECurrency Currency { get; set; }
         public string Name { get; set; }
+
+        public string Number { get; set; }
     }
 }

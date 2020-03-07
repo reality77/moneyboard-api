@@ -16,6 +16,8 @@ namespace dal.Model
         public ECurrency Currency { get; set; }
         public decimal InitialBalance { get; set; }
         public string Name { get; set; }
+        public string Number { get; set; }
+        public string Iban { get; set; }
 
         public virtual ICollection<Transaction> Transactions { get; set; }
     }

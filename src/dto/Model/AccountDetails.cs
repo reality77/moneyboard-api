@@ -7,6 +7,8 @@ namespace dto.Model
     {
         public decimal InitialBalance { get; set; }
 
+        public string Iban { get; set; }
+
         public AccountDetails()
         {
         }

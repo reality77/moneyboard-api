@@ -55,6 +55,8 @@ namespace dal.Model
                 entity.Property(e => e.Name)
                     .IsRequired();
 
+                entity.Property(e => e.Number);
+
                 entity.Property(e => e.InitialBalance)
                     .HasDefaultValue(0)
                     .IsRequired();
@@ -68,6 +70,8 @@ namespace dal.Model
                     .IsRequired();
                 
                 entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.Number).IsUnique();
+                entity.HasIndex(e => e.Iban).IsUnique();
             });
 
             modelBuilder.Entity<TagType>(entity =>

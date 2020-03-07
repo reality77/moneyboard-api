@@ -52,10 +52,10 @@ namespace api.Controllers
             return Json(_mapper.Map<dto.Model.ImportedFile>(file));
         }
         
-        [HttpGet("byfilename")]
-        public async Task<IActionResult> Details(string name)
+        [HttpGet("by")]
+        public async Task<IActionResult> Details(string filename)
         {
-            var file = await _db.ImportedFiles.SingleOrDefaultAsync(f => f.FileName.ToLower() == name.ToLower());
+            var file = await _db.ImportedFiles.SingleOrDefaultAsync(f => f.FileName.ToLower() == filename.ToLower());
 
             if(file == null)
                 return NotFound();

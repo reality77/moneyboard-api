@@ -54,6 +54,17 @@ namespace api.Controllers
             return Json(_mapper.Map<AccountDetails>(account));
         }
 
+        [HttpGet("by")]
+        public async Task<IActionResult> Details(string number)
+        {
+            var account = await _db.Accounts.SingleOrDefaultAsync(a => a.Number == number);
+
+            if(account == null)
+                return NotFound();
+
+            return Json(_mapper.Map<AccountDetails>(account));
+        }
+
         [HttpGet("{id}/transactions")]
         public async Task<IActionResult> Transactions(int id)
         {
