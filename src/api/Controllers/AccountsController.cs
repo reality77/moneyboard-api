@@ -40,7 +40,7 @@ namespace api.Controllers
         {
             var accounts = _db.Accounts.AsQueryable();
 
-            return Json(_mapper.Map<AccountBase>(accounts));
+            return Json(_mapper.Map<IEnumerable<AccountBase>>(accounts));
         }
 
         [HttpGet("{id}")]

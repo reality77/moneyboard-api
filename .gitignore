@@ -6,6 +6,8 @@
 /data/
 
 appsettings*.json
+build.sh
+nuget-push.sh
 
 # User-specific files
 *.rsuser
