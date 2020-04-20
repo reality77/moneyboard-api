@@ -54,6 +54,28 @@ namespace api.Controllers
             return Json(_mapper.Map<AccountDetails>(account));
         }
 
+        [HttpPost("")]
+        public async Task<IActionResult> Create(AccountDetails account)
+        {
+            if(_db.Accounts.Any(a => a.Name == account.Name || (account.Number != null && a.Number == account.Number) || (account.Iban != null && a.Iban == account.Iban)))
+                return BadRequest(); // todo préciser erreur (doublon)
+
+            var dbacc = new dal.Model.Account
+            {
+                Name = account.Name,
+                Number = account.Number,
+                InitialBalance = account.InitialBalance,
+                Currency = account.Currency,
+                Iban = account.Iban,
+            };
+
+            _db.Accounts.Add(dbacc);
+
+            await _db.SaveChangesAsync();
+
+            return Created($"/accounts/{dbacc.Id}", _mapper.Map<AccountDetails>(dbacc));
+        }
+
         [HttpGet("by")]
         public async Task<IActionResult> Details(string number)
         {
