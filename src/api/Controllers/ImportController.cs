@@ -51,6 +51,17 @@ namespace api.Controllers
             
             return Json(_mapper.Map<dto.Model.ImportedFile>(file));
         }
+
+        [HttpGet("{id}/transactions")]
+        public async Task<IActionResult> Transactions(int id)
+        {
+            var transactions = await _db.ImportedTransactions
+                .Include(t => t.TransactionTags).ThenInclude(tt => tt.Tag)
+                .Where(t => t.ImportFileId == id)
+                .ToListAsync();
+
+            return Json(_mapper.Map<IEnumerable<ImportedTransaction>>(transactions));
+        }        
         
         [HttpGet("by")]
         public async Task<IActionResult> Details(string filename)
