@@ -88,13 +88,15 @@ namespace api.Controllers
         }
 
         [HttpGet("{id}/transactions")]
-        public async Task<IActionResult> Transactions(int id)
+        public async Task<IActionResult> Transactions(int id, int pageId = 0, int itemsPerPage = 500)
         {
             var transactions = await _db.Transactions
                 .Include(t => t.BalanceData)
                 .Include(t => t.TransactionTags).ThenInclude(tt => tt.Tag)
                 .Where(t => t.AccountId == id)
                 .OrderByDescending(t => t.Date)
+                .Skip(pageId * itemsPerPage)
+                .Take(itemsPerPage)
                 .ToListAsync();
 
             return Json(_mapper.Map<IEnumerable<TransactionWithBalance>>(transactions));
