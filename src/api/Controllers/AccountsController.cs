@@ -102,6 +102,24 @@ namespace api.Controllers
             return Json(_mapper.Map<IEnumerable<TransactionWithBalance>>(transactions));
         }
 
+        /*[HttpGet("{id}/test")]
+        public async Task<IActionResult> TestAdd(int id)
+        {
+            _db.Transactions.Add(new dal.Model.Transaction
+            {
+                AccountId = id,
+                Amount = 50,
+                Caption = "Simple transaction",
+                Comment = "Simple transaction (not imported)",
+                Date = DateTime.Today,
+                Type = dto.ETransactionType.Unknown,
+            });
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }*/
+
         [HttpGet("{id}/balance_history")]
         public IActionResult BalanceHistory(int id, DateTime? from, DateTime? to)
         {

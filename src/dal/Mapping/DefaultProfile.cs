@@ -29,6 +29,11 @@ namespace dal.Mapping
             CreateMap<dal.Model.Tag, dto.Model.Tag>()
                 .ReverseMap();
 
+            CreateMap<dal.Model.TagType, dto.Model.TagType>()
+                .ReverseMap();               
+
+            CreateMap<dto.Model.TagTypeEdit, dal.Model.TagType>();
+
             CreateMap<dal.Model.ImportedTransaction, dto.Model.ImportedTransaction>()
                 .ForMember(dest => dest.Tags, 
                     opt => opt.MapFrom(s => s.TransactionTags.AsQueryable().Select(tag => new dto.Model.Tag
@@ -40,6 +45,17 @@ namespace dal.Mapping
                 )));
 
             CreateMap<dal.Model.Transaction, dto.Model.Transaction>()
+                .ForMember(dest => dest.Tags, 
+                    opt => opt.MapFrom(s => s.TransactionTags.AsQueryable().Select(tag => new dto.Model.Tag
+                    {
+                        TypeKey = tag.Tag.TypeKey,
+                        Key = tag.Tag.Key,
+                        Caption = tag.Tag.Caption,
+                    }
+                )));
+
+            CreateMap<dal.Model.ImportedTransaction, dto.Model.TransactionWithBalance>()
+                .ForMember(dest => dest.Balance, opt => opt.MapFrom(s => s.BalanceData.Balance))
                 .ForMember(dest => dest.Tags, 
                     opt => opt.MapFrom(s => s.TransactionTags.AsQueryable().Select(tag => new dto.Model.Tag
                     {
