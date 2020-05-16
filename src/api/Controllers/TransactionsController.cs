@@ -37,10 +37,20 @@ namespace api.Controllers
         [HttpGet("")]
         public IActionResult List()
         {
-            var trx = _db.ImportedTransactions.Include(t => t.TransactionTags).ThenInclude(tt => tt.Tag);
+            var trx = _db.Transactions.Include(t => t.TransactionTags).ThenInclude(tt => tt.Tag);
 
             return Json(_mapper.Map<IEnumerable<dto.Model.Transaction>>(trx));
         }
+
+
+        [HttpGet("imported")]
+        public IActionResult ListImported()
+        {
+            var trx = _db.ImportedTransactions.Include(t => t.TransactionTags).ThenInclude(tt => tt.Tag);
+
+            return Json(_mapper.Map<IEnumerable<dto.Model.ImportedTransaction>>(trx));
+        }
+
 
         [HttpGet("{id}")]
         public IActionResult Details(int id)

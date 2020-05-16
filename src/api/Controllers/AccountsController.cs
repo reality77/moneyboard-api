@@ -88,17 +88,37 @@ namespace api.Controllers
         }
 
         [HttpGet("{id}/transactions")]
-        public async Task<IActionResult> Transactions(int id)
+        public async Task<IActionResult> Transactions(int id, int pageId = 0, int itemsPerPage = 500)
         {
             var transactions = await _db.Transactions
                 .Include(t => t.BalanceData)
                 .Include(t => t.TransactionTags).ThenInclude(tt => tt.Tag)
                 .Where(t => t.AccountId == id)
                 .OrderByDescending(t => t.Date)
+                .Skip(pageId * itemsPerPage)
+                .Take(itemsPerPage)
                 .ToListAsync();
 
             return Json(_mapper.Map<IEnumerable<TransactionWithBalance>>(transactions));
         }
+
+        /*[HttpGet("{id}/test")]
+        public async Task<IActionResult> TestAdd(int id)
+        {
+            _db.Transactions.Add(new dal.Model.Transaction
+            {
+                AccountId = id,
+                Amount = 50,
+                Caption = "Simple transaction",
+                Comment = "Simple transaction (not imported)",
+                Date = DateTime.Today,
+                Type = dto.ETransactionType.Unknown,
+            });
+
+            await _db.SaveChangesAsync();
+
+            return Ok();
+        }*/
 
         [HttpGet("{id}/balance_history")]
         public IActionResult BalanceHistory(int id, DateTime? from, DateTime? to)
