@@ -161,6 +161,30 @@ $$;
 create trigger account_update after update on ""Accounts""
     for each row execute procedure on_account_update();");
 
+            migrationBuilder.Sql(@"create or replace procedure disable_balance_computation()
+  language plpgsql
+as $$
+  begin
+	ALTER TABLE ""Accounts"" DISABLE TRIGGER account_update;
+	ALTER TABLE ""Transactions"" DISABLE TRIGGER transaction_insert;
+	ALTER TABLE ""Transactions"" DISABLE TRIGGER transaction_update;
+	ALTER TABLE ""Transactions"" DISABLE TRIGGER transaction_delete;
+  end;
+$$;
+
+create or replace procedure reenable_balance_computation()
+  language plpgsql
+as $$
+  begin
+	ALTER TABLE ""Accounts"" ENABLE TRIGGER account_update;
+	ALTER TABLE ""Transactions"" ENABLE TRIGGER transaction_insert;
+	ALTER TABLE ""Transactions"" ENABLE TRIGGER transaction_update;
+	ALTER TABLE ""Transactions"" ENABLE TRIGGER transaction_delete;
+	
+	call refresh_all_balances();
+  end;
+$$;");
+
             migrationBuilder.Sql("call refresh_all_balances();");
         }
 
@@ -176,6 +200,8 @@ create trigger account_update after update on ""Accounts""
             migrationBuilder.Sql(@"drop function on_account_update");
             migrationBuilder.Sql(@"drop procedure update_balances");
             migrationBuilder.Sql(@"drop procedure refresh_all_balances");
+            migrationBuilder.Sql(@"drop procedure disable_balance_computation");
+            migrationBuilder.Sql(@"drop procedure reenable_balance_computation");
             migrationBuilder.DropTable(
                 name: "TransactionBalances");
 
