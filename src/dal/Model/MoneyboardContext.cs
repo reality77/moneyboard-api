@@ -196,14 +196,12 @@ namespace dal.Model
                 entity.HasOne(d => d.TargetTag)
                     .WithMany()
                     .HasForeignKey(d => d.TargetTagId);
-            });            
+            });
 
             modelBuilder.Entity<TransactionBalance>(entity => {
 
                 entity.HasKey(e => e.Id);
                 
-                entity.ToView("TransactionBalances");
-
                 entity.HasOne<Transaction>()
                     .WithOne(p => p.BalanceData)
                     .HasForeignKey<TransactionBalance>(t => t.Id)
