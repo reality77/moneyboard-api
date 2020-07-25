@@ -346,5 +346,9 @@ namespace dal.Model
 
             this.SaveChanges();
         }
+
+        public async Task RefreshAllBalancesAsync() => await this.Database.ExecuteSqlRawAsync("call refresh_all_balances()");
+        
+        public async Task UpdateBalanceAsync(int accountId, DateTime? fromDate) => await this.Database.ExecuteSqlInterpolatedAsync($"call update_balances({accountId}, {fromDate})");
     }
 }
