@@ -196,14 +196,12 @@ namespace dal.Model
                 entity.HasOne(d => d.TargetTag)
                     .WithMany()
                     .HasForeignKey(d => d.TargetTagId);
-            });            
+            });
 
             modelBuilder.Entity<TransactionBalance>(entity => {
 
                 entity.HasKey(e => e.Id);
                 
-                entity.ToView("TransactionBalances");
-
                 entity.HasOne<Transaction>()
                     .WithOne(p => p.BalanceData)
                     .HasForeignKey<TransactionBalance>(t => t.Id)
@@ -348,5 +346,13 @@ namespace dal.Model
 
             this.SaveChanges();
         }
+
+        public async Task RefreshAllBalancesAsync() => await this.Database.ExecuteSqlRawAsync("call refresh_all_balances()");
+        
+        public async Task UpdateBalanceAsync(int accountId, DateTime? fromDate) => await this.Database.ExecuteSqlInterpolatedAsync($"call update_balances({accountId}, {fromDate})");
+    
+        public async Task DisableBalancesComputationAsync() => await this.Database.ExecuteSqlRawAsync("call disable_balance_computation()");
+        
+        public async Task ReenableBalancesComputationAsync() => await this.Database.ExecuteSqlRawAsync("call reenable_balance_computation()");
     }
 }
