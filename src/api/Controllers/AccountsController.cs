@@ -36,22 +36,51 @@ namespace api.Controllers
         }
 
         [HttpGet("")]
-        public IActionResult List()
+        public async Task<IActionResult> List()
         {
-            var accounts = _db.Accounts.AsQueryable();
+            var accounts = _db.Accounts
+                .Include(a => a.Transactions)
+                .ThenInclude(t => t.BalanceData)
+                .AsQueryable();
 
-            return Json(_mapper.Map<IEnumerable<AccountBase>>(accounts));
+            var balances = await accounts.ToDictionaryAsync(a => a.Id, a => new { InitialBalance = a.InitialBalance , Balance = a.Transactions.OrderByDescending(t => t.Date).FirstOrDefault().BalanceData});
+
+            var results = _mapper.Map<IEnumerable<AccountBase>>(accounts);
+
+            results.ToList().ForEach(a => 
+            {
+                var balanceData = balances[a.Id];
+
+                if(balanceData.Balance != null)
+                    a.Balance = balanceData.Balance.Balance;
+                else
+                    a.Balance = balanceData.InitialBalance;
+            });
+
+            return Json(results);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> Details(int id)
         {
-            var account = await _db.Accounts.SingleOrDefaultAsync(a => a.Id == id);
+            var account = await _db.Accounts
+                .Include(a => a.Transactions)
+                .ThenInclude(t => t.BalanceData)
+                .SingleOrDefaultAsync(a => a.Id == id);
+
+            var balance = account.Transactions.OrderByDescending(t => t.Date).FirstOrDefault().BalanceData;
 
             if(account == null)
                 return NotFound();
 
-            return Json(_mapper.Map<AccountDetails>(account));
+            var result = _mapper.Map<AccountDetails>(account);
+
+            if(balance == null)
+                result.Balance = account.InitialBalance;
+            else
+                result.Balance = balance.Balance;
+
+            return Json(result);
         }
 
         [HttpPost("")]
