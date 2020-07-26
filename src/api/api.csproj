@@ -17,6 +17,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.1" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="3.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="3.1.1" PrivateAssets="All" />
+    <PackageReference Include="NSwag.AspNetCore" Version="13.6.2" />
   </ItemGroup>
 
 </Project>
