@@ -13,7 +13,7 @@ using business.transaction.processor;
 using business.extensions;
 using Microsoft.Extensions.Logging;
 using AutoMapper;
-using api.Models;
+using dto.Model;
 
 namespace api.Controllers
 {

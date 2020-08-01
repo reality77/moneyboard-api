@@ -4,4 +4,11 @@
     <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <PackageVersion>1.1.0</PackageVersion>
+    <Title>Moneyboard models</Title>
+    <PackageDescription>Modèles de données pour l'api moneyboard</PackageDescription>
+  </PropertyGroup>
+
 </Project>
