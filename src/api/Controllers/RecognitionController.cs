@@ -107,7 +107,7 @@ namespace api.Controllers
         }
 
         [HttpPost("rescan/all")]
-        public async Task<IActionResult> RescanAll(int id)
+        public async Task<IActionResult> RescanAll()
         {
             var transactions = _db.ImportedTransactions
                 .Include(t => t.TransactionTags)
