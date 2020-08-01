@@ -129,7 +129,7 @@ namespace api.Controllers
             {
                 case EDateRange.Days:
                 {
-                    var result = query.GroupBy(t => new { Year = t.Date.Year, Month = t.Date.Month, Day = t.Date.Day }, (key, trx) => new 
+                    var result = query.GroupBy(t => new { Year = t.Date.Year, Month = t.Date.Month, Day = t.Date.Day }, (key, trx) => new TagStatisticsModel 
                     {
                         Year = key.Year,
                         Month = key.Month,
@@ -141,7 +141,7 @@ namespace api.Controllers
                 }
                 case EDateRange.Years:
                 {
-                    var result = query.GroupBy(t => new { Year = t.Date.Year }, (key, trx) => new 
+                    var result = query.GroupBy(t => new { Year = t.Date.Year }, (key, trx) => new TagStatisticsModel 
                     {
                         Year = key.Year,
                         Total = trx.Sum(tx => tx.Amount)
@@ -152,7 +152,7 @@ namespace api.Controllers
                 case EDateRange.Months:
                 default:
                 {
-                    var result = query.GroupBy(t => new { Year = t.Date.Year, Month = t.Date.Month }, (key, trx) => new 
+                    var result = query.GroupBy(t => new { Year = t.Date.Year, Month = t.Date.Month }, (key, trx) => new TagStatisticsModel 
                     {
                         Year = key.Year,
                         Month = key.Month,
