@@ -66,6 +66,28 @@ namespace api.Controllers
             return Json(_mapper.Map<dto.Model.ImportedTransaction>(trx));
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] dto.Model.TransactionEditRequest transaction)
+        {
+            var trx = _db.Transactions
+                .SingleOrDefault(t => t.Id == id);
+
+            if(trx == null)
+                return NotFound();
+
+            trx.Caption = transaction.Caption;
+            trx.Comment = transaction.Comment;
+            trx.Date = transaction.Date.Date;
+            if(transaction.UserDate != null)
+                trx.UserDate = transaction.UserDate.Value.Date;
+            else
+                trx.UserDate = null;
+
+            await _db.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         [HttpGet("tag/{tagTypeKey}/{tagKey}")]
         public async Task<IActionResult> ByTag(string tagTypeKey, string tagKey, bool searchSubTags = false)
         {
