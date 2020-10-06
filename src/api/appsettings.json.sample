@@ -13,5 +13,13 @@
   "ConnectionStrings" : 
   {
     "Moneyboard": "Server=;Port=;Database=;User Id=;Password="
+  },
+  "Authentication":
+  {
+    "Jwt":
+    {
+      "ValidIssuer": "",
+      "ValidAudience": ""
+    }
   }
 }
