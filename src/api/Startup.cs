@@ -51,11 +51,10 @@ namespace api
                     ValidateIssuer = true,
                     ValidIssuer = Configuration.GetValue<string>("Authentication:Jwt:ValidIssuer"),
                     ValidateIssuerSigningKey = true,
-                    //IssuerSigningKey = new RsaSecurityKey(rsa),
                     ValidAudience = Configuration.GetValue<string>("Authentication:Jwt:ValidAudience"),
                     ValidateAudience = true,
                     ValidateLifetime = true,
-                    //ClockSkew = TimeSpan.FromMinutes(1)
+                    ClockSkew = TimeSpan.FromMinutes(1)
                 };
             });
 
