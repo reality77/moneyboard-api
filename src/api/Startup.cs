@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -41,12 +44,14 @@ namespace api
             {
                 x.RequireHttpsMetadata = false;
                 x.SaveToken = true;
+                x.Authority = Configuration.GetValue<string>("Authentication:Jwt:Authority");
+
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
                     ValidIssuer = Configuration.GetValue<string>("Authentication:Jwt:ValidIssuer"),
                     ValidateIssuerSigningKey = true,
-                    //IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(jwtTokenConfig.Secret)),
+                    //IssuerSigningKey = new RsaSecurityKey(rsa),
                     ValidAudience = Configuration.GetValue<string>("Authentication:Jwt:ValidAudience"),
                     ValidateAudience = true,
                     ValidateLifetime = true,
@@ -76,8 +81,9 @@ namespace api
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true; 
             }
+
+            Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true; 
 
             app.UseHttpsRedirection();
 
