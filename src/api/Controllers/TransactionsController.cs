@@ -102,8 +102,11 @@ namespace api.Controllers
                 .ThenInclude(tt => tt.Tag)
                 .SingleOrDefault(t => t.Id == id);
 
-            if(trx == null)
+            if (trx == null)
+            {
+                _logger.LogDebug($"Transaction {trx.Id} not found");
                 return NotFound();
+            }
 
             var existingTransactionTag = trx.TransactionTags.SingleOrDefault(tt => tt.Tag.TypeKey == transactionTag.TagTypeKey && tt.Tag.Key == transactionTag.TagKey);
 
@@ -143,6 +146,47 @@ namespace api.Controllers
             }
 
             await _db.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+    
+        /// <summary>
+        /// Supprime un tag d'une transaction
+        /// </summary>
+        /// <param name="id">Identifiant de la transaction</param>
+        /// <param name="tagTypeKey">Type du tag</param>
+        /// <param name="tagKey">Clé du tag</param>
+        /// <returns></returns>
+        [HttpDelete("{id}/tag/{tagTypeKey}/{tagKey}")]
+        public async Task<IActionResult> Delete(int id, string tagTypeKey, string tagKey)
+        {
+            var trx = _db.Transactions
+                .Include(t => t.TransactionTags)
+                .ThenInclude(tt => tt.Tag)
+                .SingleOrDefault(t => t.Id == id);
+
+            if (trx == null)
+            {
+                _logger.LogDebug($"Transaction {trx.Id} not found");
+                return NotFound();
+            }
+
+            var existingTransactionTag = trx.TransactionTags.SingleOrDefault(tt => tt.Tag.TypeKey == tagTypeKey && tt.Tag.Key == tagKey);
+
+            if(existingTransactionTag != null)
+            {
+                trx.TransactionTags.Remove(existingTransactionTag);
+
+                _logger.LogDebug($"Transaction {trx.Id} - Tag {existingTransactionTag.TagId} removed");
+
+                await _db.SaveChangesAsync();
+            }
+            else
+            {
+                _logger.LogDebug($"Transaction {trx.Id} - No tag found in transaction with key {tagTypeKey}/{tagKey}");
+                return NotFound();
+            }
 
             return NoContent();
         }
