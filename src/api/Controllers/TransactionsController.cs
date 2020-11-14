@@ -88,6 +88,65 @@ namespace api.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Créer ou met à jour un tag dans une transaction.
+        /// </summary>
+        /// <param name="id">Identifiant de la transaction</param>
+        /// <param name="transactionTag">Information du tag à ajouter/modifier dans la transaction</param>
+        /// <returns></returns>
+        [HttpPut("{id}/tag")]
+        public async Task<IActionResult> Update(int id, [FromBody] dto.Model.TransactionTag transactionTag)
+        {
+            var trx = _db.Transactions
+                .Include(t => t.TransactionTags)
+                .ThenInclude(tt => tt.Tag)
+                .SingleOrDefault(t => t.Id == id);
+
+            if(trx == null)
+                return NotFound();
+
+            var existingTransactionTag = trx.TransactionTags.SingleOrDefault(tt => tt.Tag.TypeKey == transactionTag.TagTypeKey && tt.Tag.Key == transactionTag.TagKey);
+
+            if(existingTransactionTag != null)
+            {
+                if(existingTransactionTag.IsManual != transactionTag.IsManual)
+                {
+                    existingTransactionTag.IsManual = transactionTag.IsManual;
+                    _logger.LogDebug($"Transaction {trx.Id} - Tag {existingTransactionTag.TagId} already exists : Setting manual flag to {transactionTag.IsManual}");
+                }
+                else
+                {
+                    _logger.LogDebug($"Transaction {trx.Id} - Tag {existingTransactionTag.TagId} already exists : Nothing to update");
+                }
+            }
+            else
+            {
+                var existingTag = _db.Tags.SingleOrDefault(t => t.TypeKey == transactionTag.TagTypeKey && t.Key == transactionTag.TagKey);
+
+                if(existingTag == null)
+                {
+                    _logger.LogDebug($"Transaction {trx.Id} - No tag found with key {transactionTag.TagTypeKey}/{transactionTag.TagKey}");
+                    return BadRequest($"No tag found with key {transactionTag.TagTypeKey}/{transactionTag.TagKey}");
+                }
+                else
+                {
+                    var tt = new TransactionTag
+                    {
+                        Transaction = trx,
+                        Tag = existingTag,
+                        IsManual = transactionTag.IsManual,
+                    };
+
+                    trx.TransactionTags.Add(tt);
+                    _logger.LogDebug($"Transaction {trx.Id} - Adding tag {existingTag.Id}");
+                }
+            }
+
+            await _db.SaveChangesAsync();
+
+            return NoContent();
+        }
+
         [HttpGet("tag/{tagTypeKey}/{tagKey}")]
         public async Task<IActionResult> ByTag(string tagTypeKey, string tagKey, bool searchSubTags = false)
         {

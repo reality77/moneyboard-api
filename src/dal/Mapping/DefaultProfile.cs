@@ -44,7 +44,6 @@ namespace dal.Mapping
             CreateMap<dal.Model.ImportedTransaction, dto.Model.TransactionWithBalance>()
                 .ForMember(dest => dest.Balance, opt => opt.MapFrom(s => s.BalanceData.Balance));
 
-
             CreateMap<dal.Model.Transaction, dto.Model.TransactionWithBalance>()
                 .ForMember(dest => dest.Balance, opt => opt.MapFrom(s => s.BalanceData.Balance));
         }

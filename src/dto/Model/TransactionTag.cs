@@ -2,7 +2,7 @@ using System;
 
 namespace dto.Model
 {
-    public class TransactionTag : Tag
+    public class TransactionTag
     {
         public string TagTypeKey { get; set; }
         public string TagKey { get; set; }
