@@ -137,8 +137,13 @@ namespace api.Controllers
 
             foreach (var transaction in await transactions.ToListAsync())
             {
-                // Suppression tags
-                transaction.TransactionTags.Clear();
+                // Suppression des tags générés automatiquement
+                foreach(var tt in transaction.TransactionTags.ToList())
+                {
+                    if(!tt.IsManual)
+                        transaction.TransactionTags.Remove(tt);
+                }
+                
                 await _db.SaveChangesAsync();
 
                 foreach(var processor in transactionProcessors)
