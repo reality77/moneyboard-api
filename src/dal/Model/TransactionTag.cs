@@ -14,6 +14,8 @@ namespace dal.Model
 
         public virtual Tag Tag { get; set; }
 
+        public virtual bool IsManual { get; set; }
+
         [JsonIgnore]
         public virtual Transaction Transaction { get; set; }
     }

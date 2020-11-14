@@ -34,47 +34,19 @@ namespace dal.Mapping
 
             CreateMap<dto.Model.TagTypeEdit, dal.Model.TagType>();
 
-            CreateMap<dal.Model.ImportedTransaction, dto.Model.ImportedTransaction>()
-                .ForMember(dest => dest.Tags, 
-                    opt => opt.MapFrom(s => s.TransactionTags.AsQueryable().Select(tag => new dto.Model.Tag
-                    {
-                        TypeKey = tag.Tag.TypeKey,
-                        Key = tag.Tag.Key,
-                        Caption = tag.Tag.Caption,
-                    }
-                )));
+            CreateMap<dal.Model.TransactionTag, dto.Model.TransactionTag>()
+                .ReverseMap();
 
-            CreateMap<dal.Model.Transaction, dto.Model.Transaction>()
-                .ForMember(dest => dest.Tags, 
-                    opt => opt.MapFrom(s => s.TransactionTags.AsQueryable().Select(tag => new dto.Model.Tag
-                    {
-                        TypeKey = tag.Tag.TypeKey,
-                        Key = tag.Tag.Key,
-                        Caption = tag.Tag.Caption,
-                    }
-                )));
+            CreateMap<dal.Model.ImportedTransaction, dto.Model.ImportedTransaction>();
+
+            CreateMap<dal.Model.Transaction, dto.Model.Transaction>();
 
             CreateMap<dal.Model.ImportedTransaction, dto.Model.TransactionWithBalance>()
-                .ForMember(dest => dest.Balance, opt => opt.MapFrom(s => s.BalanceData.Balance))
-                .ForMember(dest => dest.Tags, 
-                    opt => opt.MapFrom(s => s.TransactionTags.AsQueryable().Select(tag => new dto.Model.Tag
-                    {
-                        TypeKey = tag.Tag.TypeKey,
-                        Key = tag.Tag.Key,
-                        Caption = tag.Tag.Caption,
-                    }
-                )));
+                .ForMember(dest => dest.Balance, opt => opt.MapFrom(s => s.BalanceData.Balance));
+
 
             CreateMap<dal.Model.Transaction, dto.Model.TransactionWithBalance>()
-                .ForMember(dest => dest.Balance, opt => opt.MapFrom(s => s.BalanceData.Balance))
-                .ForMember(dest => dest.Tags, 
-                    opt => opt.MapFrom(s => s.TransactionTags.AsQueryable().Select(tag => new dto.Model.Tag
-                    {
-                        TypeKey = tag.Tag.TypeKey,
-                        Key = tag.Tag.Key,
-                        Caption = tag.Tag.Caption,
-                    }
-                )));
+                .ForMember(dest => dest.Balance, opt => opt.MapFrom(s => s.BalanceData.Balance));
         }
     }
 }

@@ -196,7 +196,7 @@ namespace api.Controllers
                 var transactionTag = transaction.TransactionTags.Single(tt => tt.Tag == tagSource);
                 transaction.TransactionTags.Remove(transactionTag);
 
-                transaction.TransactionTags.Add(new TransactionTag
+                transaction.TransactionTags.Add(new dal.Model.TransactionTag
                 {
                     Transaction = transaction,
                     Tag = tagTarget

@@ -13,7 +13,7 @@ namespace dto.Model
         public ETransactionType Type { get; set; }
         public DateTime? UserDate { get; set; }
 
-        public IEnumerable<Tag> Tags { get; set; }
+        public IEnumerable<TransactionTag> TransactionTags { get; set; }
 
         public Transaction()
         {
