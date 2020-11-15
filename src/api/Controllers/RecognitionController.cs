@@ -87,6 +87,25 @@ namespace api.Controllers
             return NoContent();
         }
 
+        [HttpPost("rescan/transaction/{id}")]
+        public async Task<IActionResult> RescanTransaction(int id)
+        {
+            var transactions = _db.ImportedTransactions
+                .Include(t => t.TransactionTags)
+                .Where(t => t.Id == id);
+
+            try
+            {
+                var result = await RescanInternal(transactions);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"RESCAN TRANSACTION {id} : {ex.ToString()}");
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
+        }
+
         [HttpPost("rescan/importedfile/{id}")]
         public async Task<IActionResult> RescanFile(int id)
         {
@@ -101,7 +120,7 @@ namespace api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError($"RESCAN FILE : {ex.ToString()}");
+                _logger.LogError($"RESCAN FILE {id} : {ex.ToString()}");
                 return StatusCode((int)HttpStatusCode.InternalServerError);
             }
         }
@@ -125,13 +144,13 @@ namespace api.Controllers
             }
         }
 
-        public async Task<Dictionary<string, TransactionsFileImportResult>> RescanInternal(IQueryable<dal.Model.ImportedTransaction> transactions)
+        private async Task<Dictionary<string, TransactionsFileImportResult>> RescanInternal(IQueryable<dal.Model.ImportedTransaction> transactions)
         {
             var dicErrors = new Dictionary<string, TransactionsFileImportResult>();
 
             var transactionProcessors = new List<ITransactionProcessor>()
                 {
-                    new CaisseEpargneProcessor(),
+                    new CaisseEpargneProcessor(_serviceProvider.GetService<ILogger<CaisseEpargneProcessor>>()),
                     new RecognitionRulesProcessor(_serviceProvider.GetService<ILogger<RecognitionRulesProcessor>>())
                 };
 

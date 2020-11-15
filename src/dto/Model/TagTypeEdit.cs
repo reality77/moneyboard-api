@@ -10,5 +10,6 @@ namespace dto.Model
         }
 
         public string Caption { get; set; }
+        public bool OneTagOnly { get; set; }
     }
 }

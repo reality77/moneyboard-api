@@ -6,11 +6,13 @@ using System.Text.RegularExpressions;
 using dal.Model;
 using Microsoft.EntityFrameworkCore;
 using dto;
+using Microsoft.Extensions.Logging;
 
 namespace business.transaction.processor
 {
     public class CaisseEpargneProcessor : ITransactionProcessor
     {
+        private readonly ILogger<CaisseEpargneProcessor> _logger;
         const string USERDATE_FORMAT = "user_date_";
         const string TAG_FORMAT = "tag_";
 
@@ -25,10 +27,20 @@ namespace business.transaction.processor
             s_regexes.Add(new Regex("^* (?'caption'(.*))$", RegexOptions.Compiled), ETransactionType.Fees);
         }
 
+        public CaisseEpargneProcessor(ILogger<CaisseEpargneProcessor> logger) => _logger = logger;
+
         public void ProcessTransaction(MoneyboardContext db, ImportedTransaction transaction)
         {
+            _logger.LogDebug($"Processing transaction {transaction.Id}");
+            
             foreach(var regexItem in s_regexes)
             {
+                if(string.IsNullOrWhiteSpace(transaction.ImportCaption))
+                {
+                    _logger.LogInformation($"No caption detected in transaction {transaction.Id}");
+                    continue;
+                }
+
                 var match = regexItem.Key.Match(transaction.ImportCaption);
 
                 if (match.Success)
@@ -42,13 +54,46 @@ namespace business.transaction.processor
 
                     var tags = DetectTags(db, match);
 
+
                     foreach(var tag in tags)
                     {
-                        transaction.TransactionTags.Add(new TransactionTag
+                        bool addTag = true;
+
+                        if(tag.Type.OneTagOnly)
                         {
-                            Transaction = transaction,
-                            Tag = tag,
-                        });
+                            // recherche d'autres tags du meme type
+                            foreach(var ttag in transaction.TransactionTags.Where(tt => tt.Tag.Type == tag.Type).ToList())
+                            {
+                                if(ttag.IsManual)
+                                {
+                                    addTag = false;
+                                    _logger.LogInformation($"Manual tag {ttag.Tag} detected in transaction {transaction.Id} : The tag {tag} will not be added (cause : OneTagOnly)");
+                                    break;
+                                }
+
+                                if(ttag.Tag.Key != tag.Key)
+                                {
+                                    _logger.LogInformation($"Removing tag {ttag.Tag} from transaction {transaction.Id} (cause : OneTagOnly)");
+                                    transaction.TransactionTags.Remove(ttag);
+                                }
+                                else
+                                {
+                                    _logger.LogInformation($"Keeping existing tag {ttag.Tag} in transaction {transaction.Id} (cause : OneTagOnly)");
+                                    addTag = false;
+                                }
+                            }
+                        }
+
+                        if(addTag)
+                        {
+                            _logger.LogInformation($"Adding tag {tag} to transaction {transaction.Id}");
+
+                            transaction.TransactionTags.Add(new TransactionTag
+                            {
+                                Transaction = transaction,
+                                Tag = tag,
+                            });
+                        }
                     }
 
                     transaction.Caption = DetectGroup("caption", match);
@@ -82,13 +127,20 @@ namespace business.transaction.processor
                     tag = recognizedTag.TargetTag;
                 else
                 {
-                    if (!db.TagTypes.Any(t => t.Key == tagTypeKey))
+                    var tagType = db.TagTypes
+                        .Include(t => t.Tags)
+                        .SingleOrDefault(t => t.Key == tagTypeKey);
+
+                    if (tagType == null)
                     {
-                        db.TagTypes.Add(new TagType
+                        // Pour le moment, on créé les types de tags à la volée. A voir si on garde à l'avenir
+                        tagType = new TagType
                         {
                             Key = tagTypeKey,
                             Caption = tagTypeKey,
-                        });
+                        };
+
+                        db.TagTypes.Add(tagType);
                     }
 
                     tag = db.Tags.SingleOrDefault(t => t.Key == tagKey);
@@ -96,6 +148,7 @@ namespace business.transaction.processor
                     {
                         tag = new Tag
                         {
+                            Type = tagType,
                             TypeKey = tagTypeKey,
                             Key = tagKey,
                             Caption = tagKeyCaption,

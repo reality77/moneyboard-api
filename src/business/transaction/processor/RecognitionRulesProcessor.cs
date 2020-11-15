@@ -87,7 +87,7 @@ namespace business.transaction.processor
                                 if(result)
                                     _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : MATCH : Equals matched with transaction {transaction.ImportHash}");
                                 else
-                                    _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : Equals matched with transaction {transaction.ImportHash}");
+                                    _logger.LogDebug($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : Equals matched with transaction {transaction.ImportHash}");
                                 return result;
                             }
                             case ERecognitionRuleConditionOperator.Contains:
@@ -99,13 +99,13 @@ namespace business.transaction.processor
                                     if(result)
                                         _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : MATCH : Contains matched with transaction {transaction.ImportHash}");
                                     else
-                                        _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : Contains did not matched with transaction {transaction.ImportHash}");
+                                        _logger.LogDebug($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : Contains did not matched with transaction {transaction.ImportHash}");
 
                                     return result;
                                 }
                                 else
                                 {
-                                    _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : BAD_CONFIG : Bad type for Contains with transaction {transaction.ImportHash}");
+                                    _logger.LogWarning($"Condition #{condition.Rule.Id}.{condition.Id} : BAD_CONFIG : Bad type for Contains with transaction {transaction.ImportHash}");
                                     return false;
                                 }
                             }
@@ -144,7 +144,7 @@ namespace business.transaction.processor
                                     if(result)
                                         _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : MATCH : Equals matched with transaction {transaction.ImportHash}");
                                     else
-                                        _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : Equals matched with transaction {transaction.ImportHash}");
+                                        _logger.LogDebug($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : Equals matched with transaction {transaction.ImportHash}");
                                     return result;
                                 }
                             }
@@ -162,7 +162,7 @@ namespace business.transaction.processor
                         if(result)
                             _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : MATCH : Tag matched with transaction {transaction.ImportHash}");
                         else
-                            _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : Tag did not matched with transaction {transaction.ImportHash}");
+                            _logger.LogDebug($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : Tag did not matched with transaction {transaction.ImportHash}");
 
                         return result;
                     }
@@ -178,8 +178,26 @@ namespace business.transaction.processor
             {
                 case ERecognitionRuleActionType.AddTag:
                 {
+                    var tagtype = db.TagTypes.SingleOrDefault(t => t.Key == action.Field);
+
+                    if(tagtype == null)
+                    {
+                        _logger.LogWarning($"Action #{action.Rule.Id}.{action.Id} : BAD_CONFIG : Tag type {action.Field} not found");
+                        return false;
+                    }
+
+                    // Si un tag de ce type existe déjà dans la transaction, on ne peut pas en ajouter de nouveau
+                    var existingTransactionTagOfType = transaction.TransactionTags.SingleOrDefault(t => t.Tag.TypeKey == action.Field);
+
+                    if(existingTransactionTagOfType != null)
+                    {
+                        _logger.LogInformation($"Action #{action.Rule.Id}.{action.Id} : NOT PROCESSED : AddTag {action.Field}:{action.Value} not processed for transaction {transaction.ImportHash} : Tag of type {action.Field} already exists in transaction");
+                        return true;
+                    }
+
                     var tag = db.Tags.SingleOrDefault(t => t.TypeKey == action.Field && t.Key == action.Value);
 
+                    // Si le tag n'existe pas, on le créé
                     if(tag == null)
                     {
                         tag = new Tag { TypeKey = action.Field, Key = action.Value };

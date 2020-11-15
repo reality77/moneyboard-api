@@ -28,5 +28,7 @@ namespace dal.Model
         public virtual ICollection<TransactionTag> TransactionTags { get; set; }
 
         public virtual ICollection<Tag> SubTags { get; set; }
+
+        public override string ToString() => $"{TypeKey}:{Key}";
     }
 }

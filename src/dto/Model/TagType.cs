@@ -11,5 +11,6 @@ namespace dto.Model
 
         public string Key { get; set; }
         public string Caption { get; set; }
+        public bool OneTagOnly { get; set; }
     }
 }
