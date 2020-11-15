@@ -92,6 +92,8 @@ namespace api.Controllers
         {
             var transactions = _db.ImportedTransactions
                 .Include(t => t.TransactionTags)
+                .ThenInclude(tt => tt.Tag)
+                .ThenInclude(t => t.Type)                
                 .Where(t => t.Id == id);
 
             try
@@ -111,6 +113,8 @@ namespace api.Controllers
         {
             var transactions = _db.ImportedTransactions
                 .Include(t => t.TransactionTags)
+                .ThenInclude(tt => tt.Tag)
+                .ThenInclude(t => t.Type)                
                 .Where(t => t.ImportFileId == id);
 
             try
@@ -130,6 +134,8 @@ namespace api.Controllers
         {
             var transactions = _db.ImportedTransactions
                 .Include(t => t.TransactionTags)
+                .ThenInclude(tt => tt.Tag)
+                .ThenInclude(t => t.Type)
                 .AsQueryable();
 
             try

@@ -143,7 +143,8 @@ namespace business.transaction.processor
                         db.TagTypes.Add(tagType);
                     }
 
-                    tag = db.Tags.SingleOrDefault(t => t.Key == tagKey);
+                    tag = db.Tags.SingleOrDefault(t => t.TypeKey == tagTypeKey && t.Key == tagKey);
+
                     if (tag == null)
                     {
                         tag = new Tag
