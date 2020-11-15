@@ -144,7 +144,7 @@ namespace api.Controllers
             }
         }
 
-        public async Task<Dictionary<string, TransactionsFileImportResult>> RescanInternal(IQueryable<dal.Model.ImportedTransaction> transactions)
+        private async Task<Dictionary<string, TransactionsFileImportResult>> RescanInternal(IQueryable<dal.Model.ImportedTransaction> transactions)
         {
             var dicErrors = new Dictionary<string, TransactionsFileImportResult>();
 
