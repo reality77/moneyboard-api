@@ -41,12 +41,6 @@ namespace api.Controllers
             return Json(_mapper.Map<IEnumerable<dto.Model.Tag>>(await _db.Tags.ToListAsync()));
         }
 
-        [HttpGet("{tagTypeKey}/details")]
-        public async Task<IActionResult> DetailsType(string tagTypeKey)
-        {
-            return Json(_mapper.Map<dto.Model.TagType>(await _db.TagTypes.SingleAsync(tt => tt.Key == tagTypeKey)));
-        }
-
         [HttpGet("{tagTypeKey}")]
         public async Task<IActionResult> ListByTagType(string tagTypeKey)
         {
