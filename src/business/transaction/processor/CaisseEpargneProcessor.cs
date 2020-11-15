@@ -167,7 +167,7 @@ namespace business.transaction.processor
 
         private string FormatTagKey(string tag)
         {
-            return tag.ToLower().Replace(' ', '_');
+            return tag.ToLower().Replace(' ', '_').Replace("/", "__");
         }
 
         private string DetectGroup(string groupName, Match match)
