@@ -47,20 +47,6 @@ namespace api.Controllers
             return Json(_mapper.Map<IEnumerable<dto.Model.Tag>>(await _db.Tags.Where(t => t.TypeKey == tagTypeKey).ToListAsync()));
         }
 
-        [HttpPost("{tagTypeKey}")]
-        public async Task<IActionResult> CreateTagType(string tagTypeKey, dto.Model.TagTypeEdit tagTypeData)
-        {
-            var tag = _mapper.Map<dal.Model.TagType>(tagTypeData);
-
-            tag.Key = tagTypeKey;
-
-            _db.TagTypes.Add(tag);
-            
-            await _db.SaveChangesAsync();
-
-            return Created($"/tags/{tagTypeKey}", _mapper.Map<dto.Model.TagType>(tag));
-        }
-
         [HttpGet("{tagTypeKey}/{tagKeySource}")]
         public async Task<IActionResult> Details(string tagTypeKey, string tagKeySource)
         {

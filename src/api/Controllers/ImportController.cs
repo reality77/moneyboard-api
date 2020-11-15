@@ -113,7 +113,7 @@ namespace api.Controllers
                 // Ajout processeurs
                 importer.Processors.Add(new DatabaseInsertionProcessor(_db, account, new List<ITransactionProcessor>()
                 {
-                    new CaisseEpargneProcessor(),
+                    new CaisseEpargneProcessor(_serviceProvider.GetService<ILogger<CaisseEpargneProcessor>>()),
                     new RecognitionRulesProcessor(_serviceProvider.GetService<ILogger<RecognitionRulesProcessor>>()),
                 }, _serviceProvider.GetService<ILogger<DatabaseInsertionProcessor>>()));
 
@@ -142,7 +142,7 @@ namespace api.Controllers
             var dicErrors = new Dictionary<string, TransactionsFileImportResult>();
             var transactionProcessors = new List<ITransactionProcessor>()
                 {
-                    new CaisseEpargneProcessor(),
+                    new CaisseEpargneProcessor(_serviceProvider.GetService<ILogger<CaisseEpargneProcessor>>()),
                     new RecognitionRulesProcessor(_serviceProvider.GetService<ILogger<RecognitionRulesProcessor>>())
                 };
 

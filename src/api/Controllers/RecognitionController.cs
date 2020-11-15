@@ -131,7 +131,7 @@ namespace api.Controllers
 
             var transactionProcessors = new List<ITransactionProcessor>()
                 {
-                    new CaisseEpargneProcessor(),
+                    new CaisseEpargneProcessor(_serviceProvider.GetService<ILogger<CaisseEpargneProcessor>>()),
                     new RecognitionRulesProcessor(_serviceProvider.GetService<ILogger<RecognitionRulesProcessor>>())
                 };
 

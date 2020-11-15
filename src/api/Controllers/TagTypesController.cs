@@ -51,5 +51,20 @@ namespace api.Controllers
             else
                 return Json(_mapper.Map<dto.Model.TagType>(result));
         }
+
+    
+        [HttpPost("{tagTypeKey}")]
+        public async Task<IActionResult> Create(string tagTypeKey, dto.Model.TagTypeEdit tagTypeData)
+        {
+            var tagtype = _mapper.Map<dal.Model.TagType>(tagTypeData);
+
+            tagtype.Key = tagTypeKey;
+
+            _db.TagTypes.Add(tagtype);
+            
+            await _db.SaveChangesAsync();
+
+            return Created($"/tags/{tagTypeKey}", _mapper.Map<dto.Model.TagType>(tagtype));
+        }
     }
 }

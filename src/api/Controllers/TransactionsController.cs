@@ -95,7 +95,7 @@ namespace api.Controllers
         /// <param name="transactionTag">Information du tag à ajouter/modifier dans la transaction</param>
         /// <returns></returns>
         [HttpPut("{id}/tag")]
-        public async Task<IActionResult> Update(int id, [FromBody] dto.Model.TransactionTag transactionTag)
+        public async Task<IActionResult> UpdateTag(int id, [FromBody] dto.Model.TransactionTag transactionTag)
         {
             var trx = _db.Transactions
                 .Include(t => t.TransactionTags)
@@ -133,6 +133,24 @@ namespace api.Controllers
                 }
                 else
                 {
+                    var tagtype = await _db.TagTypes.SingleOrDefaultAsync(tt => tt.Key == existingTag.TypeKey);
+
+                    if(tagtype.OneTagOnly)
+                    {
+                        var existingTagsOfType = trx.TransactionTags.Where(tt => tt.Tag.TypeKey == existingTag.TypeKey).ToList();
+
+                        if(existingTagsOfType != null)
+                        {
+                            // Un tag de ce type existe déjà dans la transaction
+                            // On va le supprimer pour créer le nouveau (remplacement)
+                            foreach(var ett in existingTagsOfType)
+                            {
+                                trx.TransactionTags.Remove(ett);
+                                _logger.LogDebug($"Transaction {trx.Id} - Removing tag {ett.TagId} (cause : OneTagOnly for type {tagtype.Key})");
+                            }
+                        }
+                    }
+
                     var tt = new TransactionTag
                     {
                         Transaction = trx,
@@ -159,7 +177,7 @@ namespace api.Controllers
         /// <param name="tagKey">Clé du tag</param>
         /// <returns></returns>
         [HttpDelete("{id}/tag/{tagTypeKey}/{tagKey}")]
-        public async Task<IActionResult> Delete(int id, string tagTypeKey, string tagKey)
+        public async Task<IActionResult> DeleteTag(int id, string tagTypeKey, string tagKey)
         {
             var trx = _db.Transactions
                 .Include(t => t.TransactionTags)
