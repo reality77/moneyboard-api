@@ -94,13 +94,16 @@ namespace api.Controllers
             if(tag == null)
                 return NotFound("Tag not found");
 
+            var tags = new List<dal.Model.Tag>();
+            tags.Add(tag);
+            
+            if(request.IncludeSubTags)
+                tags.AddRange(tag.GetAllSubTags(_db));
+
             var query = _db.Transactions
                 .Include(t => t.TransactionTags).ThenInclude(tt => tt.Tag)
-                .Where(t => t.TransactionTags.Any(tt => tt.Tag == tag))
+                .Where(t => t.TransactionTags.Any(tt => tags.Contains(tt.Tag)))
                 .AsQueryable();
-
-            if(request.IncludeSubTags)
-                throw new NotImplementedException("TODO : request.IncludeSubTags");
 
             if(request.DateStart != null)
                 query = query.Where(t => t.Date >= request.DateStart);
