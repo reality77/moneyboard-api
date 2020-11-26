@@ -42,6 +42,16 @@ namespace dto
         GreaterOrEquals = 11,
         Lower = 12,
         LowerOrEquals = 13,
+        DayEquals = 20,
+        WeekEquals = 21,
+        MonthEquals = 22,
+        YearEquals = 23,
+        DayOfWeekEquals = 24,
+        
+        /// <summary>
+        /// Jour (à 3 jours près)
+        /// </summary>
+        DayNear = 25,
     }
 
     public enum ERecognitionRuleActionType : int

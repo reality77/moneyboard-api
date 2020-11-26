@@ -142,9 +142,60 @@ namespace business.transaction.processor
                                     }
 
                                     if(result)
-                                        _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : MATCH : Equals matched with transaction {transaction.ImportHash}");
+                                        _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : MATCH : {condition.ValueOperator} matched with transaction {transaction.ImportHash}");
                                     else
-                                        _logger.LogDebug($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : Equals matched with transaction {transaction.ImportHash}");
+                                        _logger.LogDebug($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : {condition.ValueOperator} matched with transaction {transaction.ImportHash}");
+                                    return result;
+                                }
+                            }
+                            case ERecognitionRuleConditionOperator.DayEquals:
+                            case ERecognitionRuleConditionOperator.WeekEquals:
+                            case ERecognitionRuleConditionOperator.MonthEquals:
+                            case ERecognitionRuleConditionOperator.YearEquals:
+                            case ERecognitionRuleConditionOperator.DayNear:
+                            case ERecognitionRuleConditionOperator.DayOfWeekEquals:
+                            {
+                                if(property.PropertyType != typeof(DateTime))
+                                {
+                                    _logger.LogWarning($"Condition #{condition.Rule.Id}.{condition.Id} : BAD_TYPE : Property {condition.FieldName} is not a date");
+                                    return false;
+                                }
+                                else
+                                {
+                                    var comparison = ((IComparable)valueToTest).CompareTo(convertedValue);
+                                    bool result = false;
+                                    _logger.LogDebug($"Testing #{condition.Rule.Id}.{condition.Id} : Comparing '{Convert.ToString(valueToTest)}' and '{Convert.ToString(convertedValue)}' : Value : {comparison}");
+
+                                    Calendar calendar = new GregorianCalendar();
+                                    var dateToTest = (DateTime)valueToTest;
+                                    var dateValue = (DateTime)convertedValue;
+
+                                    switch(condition.ValueOperator)
+                                    {
+                                        case ERecognitionRuleConditionOperator.DayEquals:
+                                            result = (dateToTest.Day == dateValue.Day);
+                                            break;
+                                        case ERecognitionRuleConditionOperator.DayNear:
+                                            result = Math.Abs(dateToTest.Day - dateValue.Day) <= 3;
+                                            break;
+                                        case ERecognitionRuleConditionOperator.DayOfWeekEquals:
+                                            result = (dateToTest.DayOfWeek == dateValue.DayOfWeek);
+                                            break;
+                                        case ERecognitionRuleConditionOperator.WeekEquals:
+                                            result = calendar.GetWeekOfYear(dateToTest, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Friday) == calendar.GetWeekOfYear(dateValue, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Friday);
+                                            break;
+                                        case ERecognitionRuleConditionOperator.MonthEquals:
+                                            result = (dateToTest.Month == dateValue.Month);
+                                            break;
+                                        case ERecognitionRuleConditionOperator.YearEquals:
+                                            result = (dateToTest.Year == dateValue.Year);
+                                            break;
+                                    }
+
+                                    if(result)
+                                        _logger.LogInformation($"Condition #{condition.Rule.Id}.{condition.Id} : MATCH : {condition.ValueOperator} matched with transaction {transaction.ImportHash}");
+                                    else
+                                        _logger.LogDebug($"Condition #{condition.Rule.Id}.{condition.Id} : NO_MATCH : {condition.ValueOperator} matched with transaction {transaction.ImportHash}");
                                     return result;
                                 }
                             }

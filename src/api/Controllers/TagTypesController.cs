@@ -52,6 +52,15 @@ namespace api.Controllers
                 return Json(_mapper.Map<dto.Model.TagType>(result));
         }
 
+        [HttpGet("{tagTypeKey}/topleveltags")]
+        public async Task<IActionResult> TopLevelTags(string tagTypeKey)
+        {
+            return Json(_mapper.Map<IEnumerable<dto.Model.Tag>>(await 
+                _db.Tags.AsQueryable()
+                .Where(t => t.TypeKey == tagTypeKey)
+                .Where(t => t.ParentTagId == null)
+                .ToListAsync()));
+        }
     
         [HttpPost("{tagTypeKey}")]
         public async Task<IActionResult> Create(string tagTypeKey, dto.Model.TagTypeEdit tagTypeData)
