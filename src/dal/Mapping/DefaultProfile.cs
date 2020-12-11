@@ -37,7 +37,8 @@ namespace dal.Mapping
             CreateMap<dal.Model.TransactionTag, dto.Model.TransactionTag>()
                 .ReverseMap();
 
-            CreateMap<dal.Model.ImportedTransaction, dto.Model.ImportedTransaction>();
+            CreateMap<dal.Model.ImportedTransaction, dto.Model.ImportedTransaction>()
+                .ReverseMap();
 
             CreateMap<dal.Model.Transaction, dto.Model.Transaction>();
 
