@@ -15,6 +15,7 @@ using business.import.processor;
 using AutoMapper;
 using System.Net;
 using AutoMapper.QueryableExtensions;
+using business.transaction;
 
 namespace api.Controllers
 {
@@ -75,6 +76,22 @@ namespace api.Controllers
         }
 
 
+        /// <summary>
+        /// Détecte les transactions qui seront concernées par les conditions d'une règle en cours de création
+        /// </summary>
+        /// <returns></returns>
+        [HttpPost("rules/detect")]
+        public async Task<IActionResult> DetectTransaction(dto.Model.TransactionRecognitionRuleEdit rule)
+        {
+            if(rule == null)
+                return NotFound();
+
+            if(rule.UseOrConditions)
+                return BadRequest("UseOrConditions not supported for now in recognition/rules/detect");                
+            
+            return Json(await DetectTransactionInternal(rule));
+        }
+
         [HttpDelete("rules/{id}")]
         public async Task<IActionResult> RuleDelete(int id)
         {
@@ -85,6 +102,70 @@ namespace api.Controllers
             await _db.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        /// <summary>
+        /// Détecte les transactions qui seront concernées par les conditions d'une règle
+        /// </summary>
+        /// <param name="id">Id de la règle</param>
+        /// <returns></returns>
+        [HttpGet("rules/{id}/detect")]
+        public async Task<IActionResult> DetectTransaction(int id)
+        {
+            var rule = await _db.TransactionRecognitionRules
+                .Include(r => r.Conditions)
+                .SingleOrDefaultAsync(r => r.Id == id);
+
+            if(rule == null)
+                return NotFound();
+
+            if(rule.UseOrConditions)
+                return BadRequest("UseOrConditions not supported for now in recognition/rule/{ruleId}");        
+
+            return Json(await DetectTransactionInternal(_mapper.Map<dto.Model.TransactionRecognitionRuleBase>(rule)));
+        }
+
+        private async Task<IEnumerable<dto.Model.ImportedTransaction>> DetectTransactionInternal(dto.Model.TransactionRecognitionRuleBase rule)
+        {
+            var processor = new RecognitionRulesProcessor(_serviceProvider.GetService<ILogger<RecognitionRulesProcessor>>());
+
+            var transactions = await processor.FindApplicableTransactionsInRuleAsync(_db, rule);
+
+            return _mapper.Map<IEnumerable<dto.Model.ImportedTransaction>>(transactions);
+        }
+
+        /// <summary>
+        /// Effectue un scan des transactions uniquement concernées par les conditions d'une règle
+        /// </summary>
+        /// <param name="id">Id de la règle</param>
+        /// <returns></returns>
+        [HttpPost("rules/{id}/scan")]
+        public async Task<IActionResult> ScanRule(int id)
+        {
+            var rule = await _db.TransactionRecognitionRules
+                .Include(r => r.Conditions)
+                .SingleOrDefaultAsync(r => r.Id == id);
+
+            if(rule == null)
+                return NotFound();
+
+            if(rule.UseOrConditions)
+                return BadRequest("UseOrConditions not supported for now in recognition/rules/{ruleId}/scan");
+
+            var processor = new RecognitionRulesProcessor(_serviceProvider.GetService<ILogger<RecognitionRulesProcessor>>());
+
+            var transactions = await processor.FindApplicableTransactionsInRuleAsync(_db, _mapper.Map<dto.Model.TransactionRecognitionRuleBase>(rule));
+
+            try
+            {
+                var result = await RescanInternal(transactions);
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"RESCAN RULE {id} : {ex.ToString()}");
+                return StatusCode((int)HttpStatusCode.InternalServerError);
+            }
         }
 
         [HttpPost("rescan/transaction/{id}")]
