@@ -50,12 +50,15 @@ namespace api.Controllers
         [HttpGet("{tagTypeKey}/{tagKeySource}")]
         public async Task<IActionResult> Details(string tagTypeKey, string tagKeySource)
         {
-            var tag = await _db.Tags.SingleOrDefaultAsync(t => t.TypeKey == tagTypeKey && t.Key == tagKeySource);
+            var tag = await _db.Tags
+                .Include(t => t.ParentTag)
+                .Include(t => t.SubTags)
+                .SingleOrDefaultAsync(t => t.TypeKey == tagTypeKey && t.Key == tagKeySource);
 
             if(tag == null)
                 return NotFound();
 
-            return Json(_mapper.Map<dto.Model.Tag>(tag));
+            return Json(_mapper.Map<dto.Model.TagDetails>(tag));
         }
 
         [HttpPost("")]

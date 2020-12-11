@@ -28,6 +28,11 @@ namespace dal.Mapping
 
             CreateMap<dal.Model.Tag, dto.Model.Tag>()
                 .ReverseMap();
+            
+            CreateMap<dal.Model.Tag, dto.Model.TagDetails>()
+                .ForMember(dest => dest.ParentKey, opt => opt.MapFrom(s => s.ParentTag.Key))
+                .ForMember(dest => dest.SubKeys, opt => opt.MapFrom(s => s.SubTags.Select(st => st.Key)))
+                .ReverseMap();
 
             CreateMap<dal.Model.TagType, dto.Model.TagType>()
                 .ReverseMap();               
