@@ -29,6 +29,7 @@ namespace dal.Model
         public virtual DbSet<ImportedTransaction> ImportedTransactions { get; set; }
         public virtual DbSet<TagType> TagTypes { get; set; }
         public virtual DbSet<Tag> Tags { get; set; }
+        public virtual DbSet<TransactionTag> TransactionTags { get; set; }
         public virtual DbSet<TransactionRecognitionRule> TransactionRecognitionRules { get; set; }
         public virtual DbSet<TagRecognition> TagRecognitions { get; set; }
         public virtual DbSet<TransactionBalance> TransactionBalances { get; set; }
@@ -124,6 +125,8 @@ namespace dal.Model
             
             modelBuilder.Entity<TransactionTag>(entity =>
             {
+                entity.ToTable("TransactionTag");
+                
                 entity.HasKey(e => new { e.TransactionId, e.TagId } );
 
                 entity.Property(e => e.TransactionId).IsRequired();
