@@ -11,6 +11,7 @@ namespace dto.Model
         public ICollection<int> AccountIds { get; set; }
 
         public bool IncludeSubTags { get; set; }
+        public bool ReturnSubTags { get; set; }
 
         public EDateRange Range { get; set; }
 
@@ -22,6 +23,7 @@ namespace dto.Model
     
     public enum EDateRange
     {
+        Range,
         Days,
         Months,
         Years,

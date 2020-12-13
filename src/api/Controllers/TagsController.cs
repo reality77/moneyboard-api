@@ -120,6 +120,15 @@ namespace api.Controllers
 
                 switch (request.Range)
                 {
+                    case EDateRange.Range:
+                        {
+                            var result = new TagStatisticsModel
+                            {
+                                Total = query.Sum(t => t.Amount)
+                            };
+
+                            return Json(result);
+                        }
                     case EDateRange.Days:
                         {
                             var result = query.GroupBy(t => new { Year = t.Date.Year, Month = t.Date.Month, Day = t.Date.Day }, (key, trx) => new TagStatisticsModel
@@ -213,17 +222,22 @@ namespace api.Controllers
                                 var total = periodData.Sum(k => k.Amount);
                                 var tagTotal = periodData.SingleOrDefault(k => k.TagId == tag.Id)?.Amount ?? 0m;
 
-                                var subTagsTotal = new List<SingleTagStatistic>();
+                                List<SingleTagStatistic> subTagsTotal = null;
 
-                                foreach(var subTag in tag.SubTags)
+                                if(request.ReturnSubTags)
                                 {
-                                    var subSubTagIds = dicAllSubTagIdsByTag[subTag];
+                                    subTagsTotal = new List<SingleTagStatistic>();
 
-                                    subTagsTotal.Add(new SingleTagStatistic
+                                    foreach(var subTag in tag.SubTags)
                                     {
-                                        Tag = _mapper.Map<dto.Model.Tag>(subTag),
-                                        Amount = periodData.Where(d => subSubTagIds.Contains(d.TagId)).Sum(d => d.Amount)
-                                    });
+                                        var subSubTagIds = dicAllSubTagIdsByTag[subTag];
+
+                                        subTagsTotal.Add(new SingleTagStatistic
+                                        {
+                                            Tag = _mapper.Map<dto.Model.Tag>(subTag),
+                                            Amount = periodData.Where(d => subSubTagIds.Contains(d.TagId)).Sum(d => d.Amount)
+                                        });
+                                    }
                                 }
 
                                 result.Add(new TagStatisticsModel
@@ -257,17 +271,22 @@ namespace api.Controllers
                                 var total = periodData.Sum(k => k.Amount);
                                 var tagTotal = periodData.SingleOrDefault(k => k.TagId == tag.Id)?.Amount ?? 0m;
 
-                                var subTagsTotal = new List<SingleTagStatistic>();
+                                List<SingleTagStatistic> subTagsTotal = null;
 
-                                foreach(var subTag in tag.SubTags)
+                                if(request.ReturnSubTags)
                                 {
-                                    var subSubTagIds = dicAllSubTagIdsByTag[subTag];
+                                    subTagsTotal = new List<SingleTagStatistic>();
 
-                                    subTagsTotal.Add(new SingleTagStatistic
+                                    foreach(var subTag in tag.SubTags)
                                     {
-                                        Tag = _mapper.Map<dto.Model.Tag>(subTag),
-                                        Amount = periodData.Where(d => subSubTagIds.Contains(d.TagId)).Sum(d => d.Amount)
-                                    });
+                                        var subSubTagIds = dicAllSubTagIdsByTag[subTag];
+
+                                        subTagsTotal.Add(new SingleTagStatistic
+                                        {
+                                            Tag = _mapper.Map<dto.Model.Tag>(subTag),
+                                            Amount = periodData.Where(d => subSubTagIds.Contains(d.TagId)).Sum(d => d.Amount)
+                                        });
+                                    }
                                 }
 
                                 result.Add(new TagStatisticsModel
@@ -282,7 +301,6 @@ namespace api.Controllers
                             return Json(result);
                         }
                     case EDateRange.Months:
-                    default:
                         {
                             var data = query.GroupBy(t => new { Year = t.Transaction.Date.Year, Month = t.Transaction.Date.Month, TagId = t.Tag.Id }, (key, trx) =>
                                 new
@@ -301,17 +319,22 @@ namespace api.Controllers
                                 var total = periodData.Sum(k => k.Amount);
                                 var tagTotal = periodData.SingleOrDefault(k => k.TagId == tag.Id)?.Amount ?? 0m;
 
-                                var subTagsTotal = new List<SingleTagStatistic>();
+                                List<SingleTagStatistic> subTagsTotal = null;
 
-                                foreach(var subTag in tag.SubTags)
+                                if(request.ReturnSubTags)
                                 {
-                                    var subSubTagIds = dicAllSubTagIdsByTag[subTag];
+                                    subTagsTotal = new List<SingleTagStatistic>();
 
-                                    subTagsTotal.Add(new SingleTagStatistic
+                                    foreach(var subTag in tag.SubTags)
                                     {
-                                        Tag = _mapper.Map<dto.Model.Tag>(subTag),
-                                        Amount = periodData.Where(d => subSubTagIds.Contains(d.TagId)).Sum(d => d.Amount)
-                                    });
+                                        var subSubTagIds = dicAllSubTagIdsByTag[subTag];
+
+                                        subTagsTotal.Add(new SingleTagStatistic
+                                        {
+                                            Tag = _mapper.Map<dto.Model.Tag>(subTag),
+                                            Amount = periodData.Where(d => subSubTagIds.Contains(d.TagId)).Sum(d => d.Amount)
+                                        });
+                                    }
                                 }
 
                                 result.Add(new TagStatisticsModel
@@ -323,6 +346,48 @@ namespace api.Controllers
                                     SubTagTotals = subTagsTotal
                                 });
                             }
+
+                            return Json(result);
+                        }
+                    default:
+                    case EDateRange.Range:
+                        {
+                            var data = query.GroupBy(t => new { TagId = t.Tag.Id }, (key, trx) =>
+                                new
+                                {
+                                    TagId = key.TagId,
+                                    Amount = trx.Sum(t => t.Transaction.Amount)
+                                }).ToList();
+
+                            var result = new List<TagStatisticsModel>();
+
+                            var total = data.Sum(k => k.Amount);
+                            var tagTotal = data.SingleOrDefault(k => k.TagId == tag.Id)?.Amount ?? 0m;
+
+                            List<SingleTagStatistic> subTagsTotal = null;
+
+                            if(request.ReturnSubTags)
+                            {
+                                subTagsTotal = new List<SingleTagStatistic>();
+
+                                foreach(var subTag in tag.SubTags)
+                                {
+                                    var subSubTagIds = dicAllSubTagIdsByTag[subTag];
+
+                                    subTagsTotal.Add(new SingleTagStatistic
+                                    {
+                                        Tag = _mapper.Map<dto.Model.Tag>(subTag),
+                                        Amount = data.Where(d => subSubTagIds.Contains(d.TagId)).Sum(d => d.Amount)
+                                    });
+                                }
+                            }
+
+                            result.Add(new TagStatisticsModel
+                            {
+                                Total = total,
+                                TagTotal = tagTotal,
+                                SubTagTotals = subTagsTotal
+                            });
 
                             return Json(result);
                         }
